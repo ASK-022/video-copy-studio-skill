@@ -1,5 +1,5 @@
 {
-  "version": "1.0.1",
+  "version": "1.0.2",
   "repository": "ASK-022/video-copy-studio-skill",
   "runtime_platform": "windows",
   "python": "3.10-3.12",

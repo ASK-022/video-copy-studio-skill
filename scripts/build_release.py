@@ -7,7 +7,7 @@ from pathlib import Path
 import re
 import zipfile
 
-TOP={'SKILL.md','VERSION','README.md','THIRD_PARTY_NOTICES.md','release.json','agents','references','scripts','assets','tests','.github','.gitignore'}
+TOP={'SKILL.md','VERSION','README.md','THIRD_PARTY_NOTICES.md','release.json','install.ps1','agents','references','scripts','assets','tests','.github','.gitignore'}
 SKIP={'.git','.venv','node_modules','__pycache__','.studio','dist'}
 
 
@@ -22,7 +22,7 @@ def main():
         if path.is_symlink() or not path.resolve().is_relative_to(root):raise ValueError('发布包不能包含符号链接。')
         if path.name in ('.env','runtime.json','providers.json','ai.json','feishu.json','tikhub.json','cue.json','job.json'):raise ValueError('发布包包含运行时配置：'+str(relative))
         raw=path.read_bytes()
-        if path.suffix in ('.py','.json','.md','.js','.html','.yaml','.yml','.txt','.mjs'):
+        if path.suffix in ('.py','.ps1','.json','.md','.js','.html','.yaml','.yml','.txt','.mjs'):
             text=raw.decode('utf-8')
             if re.search(r'\bsk-[A-Za-z0-9]{20,}\b|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}',text):raise ValueError('发布包发现疑似密钥：'+str(relative))
         files.append((relative,raw))

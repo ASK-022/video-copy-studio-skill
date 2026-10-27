@@ -4,7 +4,27 @@
 
 这是可分发的 Skill 与客户端源码包，不是内含模型和所有依赖的离线 EXE。完整本地运行时当前支持 **Windows 10/11 + Python 3.10–3.12**。Agent 需要执行本机命令的能力；纯聊天或远程云 Agent 无法直接访问用户桌面文件。
 
-## 安装到 Agent
+## 一条命令安装
+
+让同事的 Agent 在 **Windows PowerShell** 执行这一行即可，不需要先安装 Git；需要已有 Python 3.10–3.12：
+
+```powershell
+irm https://raw.githubusercontent.com/ASK-022/video-copy-studio-skill/main/install.ps1 | iex
+```
+
+安装器自动获取最新正式 Release、核验 SHA256，安装到本机已经存在的 Codex / Claude Code / OpenClaw 目录；同时装有多个 Agent 时会分别安装。没有检测到这些 Agent 目录时默认安装到 Codex。已有同名版本会先保留目录外备份再更新。
+
+然后准备本地运行时并启动客户端；首次下载依赖可能较久，模型在第一次转写时下载。已有可用服务或已配置运行时会复用。安装后重启 Agent 或新开会话，在本地客户端设置中填写自己的 AI Key。
+
+明确只安装到某一种 Agent，可使用：
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/ASK-022/video-copy-studio-skill/main/install.ps1))) -Agent claude
+```
+
+安装器参数：`-Agent auto/codex/claude/openclaw/custom`；自定义目录配合 `-SkillsDir`；`-SkillOnly` 只装技能、不下载运行时；`-NoOpen` 不打开浏览器；`-Python` 指定已有 Python；`-RuntimeHome` 指定独立运行时目录。升级不复制、清除或共享个人 Key 和素材。
+
+## 手动安装到 Agent
 
 下载正式 Release 的 `video-copy-studio-v版本.zip`，校验同页 `.sha256`，解压后进入 `video-copy-studio` 文件夹。安装说明与参数文档均在包内。
 

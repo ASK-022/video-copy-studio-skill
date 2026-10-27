@@ -17,7 +17,7 @@ python scripts/install_skill.py --agent openclaw
 python scripts/install_skill.py --agent custom --skills-dir "C:/YourAgent/skills"
 ```
 
-同名目录已存在时安装器会停止；确认升级可加 `--update`，旧版会保留备份。安装完重启 Agent 或新开会话。
+同名目录已存在时安装器会停止；确认升级可加 `--update`，旧版保存在技能目录外的 `skill-backups/video-copy-studio/`，避免被 Agent 扫描成重复 Skill。安装完重启 Agent 或新开会话。
 
 默认目录：Codex `~/.codex/skills/video-copy-studio`；Claude Code `~/.claude/skills/video-copy-studio`；OpenClaw `~/.openclaw/skills/video-copy-studio`。是否自动发现还取决于各 Agent 的配置。其他 Agent 可手动复制完整文件夹并按其文档注册。
 

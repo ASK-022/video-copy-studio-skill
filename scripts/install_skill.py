@@ -22,8 +22,10 @@ def install(source,skills_dir,update=False):
     shutil.copytree(source,staging,ignore=shutil.ignore_patterns('.git','.venv','__pycache__','*.pyc','node_modules','.studio','dist'))
     backup=None
     if target.exists():
-        backup=root/(NAME+'.backup-'+datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S%f'))
-        if not backup.resolve().is_relative_to(root):raise ValueError('备份路径越界。')
+        backup_root=root.parent/'skill-backups'/NAME
+        backup_root.mkdir(parents=True,exist_ok=True)
+        backup=backup_root/datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S%f')
+        if not backup.resolve().is_relative_to(backup_root.resolve()):raise ValueError('备份路径越界。')
         target.rename(backup)
     try:staging.rename(target)
     except Exception:

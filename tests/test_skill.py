@@ -73,6 +73,8 @@ class PackagingContract(unittest.TestCase):
             updated=install(source,tmp/'agent-skills',True)
             self.assertEqual((target/'SKILL.md').read_text(),'new')
             self.assertEqual((Path(updated['backup_path'])/'SKILL.md').read_text(),'old')
+            self.assertFalse(Path(updated['backup_path']).is_relative_to(tmp/'agent-skills'))
+            self.assertEqual(len(list((tmp/'agent-skills').glob('*/SKILL.md'))),1)
 
     def test_portable_excel_has_full_text_no_formula_and_expected_columns(self):
         from openpyxl import load_workbook

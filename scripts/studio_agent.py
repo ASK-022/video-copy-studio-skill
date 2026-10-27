@@ -15,6 +15,7 @@ import uuid
 import webbrowser
 
 from bootstrap import SKILL,home
+from prepare_models import model_status
 
 
 def settings(root):
@@ -150,7 +151,8 @@ def main():
         try:service=Studio(url).request('/health')
         except Exception:service=None
         return {'skill_version':(SKILL/'VERSION').read_text().strip(),'windows_runtime_supported':os.name=='nt','runtime_registered':bool(config),
-                'service_url':url,'service':service,'model_weights_in_zip':False,'credentials_in_zip':False}
+                'service_url':url,'service':service,'models_ready':model_status(root/'models-ready.json',config.get('model_cache')),
+                'launcher':str(root/'打开文案工坊.cmd'),'model_weights_in_zip':False,'credentials_in_zip':False}
     if args.command=='start':
         config=settings(root)
         try:
@@ -160,6 +162,8 @@ def main():
             if parsed.hostname not in ('127.0.0.1','localhost'):raise ValueError('只允许启动本机服务。')
             env=dict(os.environ,COPY_STUDIO_ASR_ROOT=config['asr_root'],COPY_STUDIO_ASR_PYTHON=config['python'],
                 FFMPEG_PATH=config['ffmpeg'],COPY_STUDIO_PORT=str(parsed.port or 8777),COPY_STUDIO_DATA=config['data_dir'],PYTHONIOENCODING='utf-8')
+            if config.get('model_cache'):
+                env.update(MODELSCOPE_CACHE=config['model_cache'],MODEL_CACHE_DIR=config['model_cache'])
             env['PATH']=str(Path(config['ffmpeg']).parent)+os.pathsep+env.get('PATH','')
             root.mkdir(parents=True,exist_ok=True)
             with (root/'server.log').open('ab') as log:

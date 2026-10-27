@@ -15,6 +15,8 @@ from studio_agent import Studio,selected_batch,save_output,invoke
 from install_skill import install
 from client.xlsx_portable import build_workbook
 from client.draft_exports import table_payload,DraftTextExport
+from prepare_models import model_status,REQUIRED,MODEL_CONTRACT
+from bootstrap import write_launcher
 
 
 class LocalTransport(unittest.TestCase):
@@ -47,6 +49,28 @@ class LocalTransport(unittest.TestCase):
 
 
 class PackagingContract(unittest.TestCase):
+    def test_missing_model_invalidates_success_receipt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);weight=root/'model.pt';weight.write_bytes(b'verified-checkpoint')
+            receipt=root/'models-ready.json'
+            data={'contract':MODEL_CONTRACT,'cache':str(root),'loaded':dict.fromkeys(REQUIRED,True),
+                  'files':[{'path':str(weight),'bytes':weight.stat().st_size}]}
+            receipt.write_text(json.dumps(data))
+            self.assertTrue(model_status(receipt,root))
+            weight.write_bytes(b'truncated');self.assertFalse(model_status(receipt,root))
+            weight.unlink();self.assertFalse(model_status(receipt,root))
+
+    def test_launcher_supports_unicode_and_quotes_in_runtime_path(self):
+        import ast
+        with tempfile.TemporaryDirectory(prefix="文案'空 格") as tmp:
+            root=Path(tmp);launcher,_=write_launcher(root,root/'python.exe')
+            module=ast.parse(launcher.read_text(encoding='utf-8'))
+            assigned=next(n for n in module.body if isinstance(n,ast.Assign))
+            command=ast.literal_eval(assigned.value)
+            self.assertIn(str(root),command)
+            self.assertEqual(command[-2:],['start','--open'])
+            self.assertTrue((root/'studio.cmd').exists())
+
     def test_text_false_never_authorizes_cloud_write_or_overwrite(self):
         for flag in ('auto_ai','write','overwrite','quality_check'):
             with self.assertRaises(ValueError):invoke(None,{'action':'feishu',flag:'false'})

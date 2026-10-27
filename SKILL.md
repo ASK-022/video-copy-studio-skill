@@ -16,15 +16,22 @@ description: 将本地视频、音频或公开短视频链接转写、纠错、�
 
 ## 使用条件
 
-- 本地 Agent 能运行 Python 脚本并访问输入文件。完整运行时当前支持 Windows 10/11、Python 3.10–3.12；不把 Windows 本地功能宣称为云端 Agent、macOS 或 Linux 原生可用。
-- 首次安装需联网安装依赖；SenseVoice 权重首次转写时下载。无需 GPU；资源占用取决于模型和视频长度。
+- 本地 Agent 能执行命令并访问输入文件。完整运行时支持 Windows 10/11 x64；一键安装会补齐独立 Python 3.10–3.12 环境。不把 Windows 本地功能宣称为云端 Agent、macOS 或 Linux 原生可用。
+- 首次安装需联网下载依赖与模型，并验证加载/推理成功；不在第一次转写时才下载必需模型。无需 GPU；资源占用取决于模型和视频长度。
 - 文件最大 500 MB、最长 30 分钟；无音轨的视频不能转写。公开链接受平台访问限制，失败后说明原因并优先使用用户下载的本地文件。
 - AI 纠错、结构分析、生成和报告需要用户自己的兼容 AI 服务配置。TikHub、Cue、视觉模型、飞书均为可选，分别配置；不共用服务商 Key。
 - 新机器安装与首次配置见 [README.md](README.md)。不要复制其他人的 `.studio`、模型缓存、浏览器资料或加密密钥。
 
 ## Agent 调用
 
-在 Skill 目录下执行，其他目录使用脚本的绝对路径：
+一键安装后优先使用运行时的 CLI 入口（支持未配置系统 Python PATH 的机器）：
+
+```powershell
+& "$env:LOCALAPPDATA\VideoCopyStudio\studio.cmd" doctor
+& "$env:LOCALAPPDATA\VideoCopyStudio\studio.cmd" start --open
+```
+
+自定义运行时目录时替换上述目录。也可使用 `runtime.json` 中的 `python` 解释器执行下列脚本；工作目录为 Skill 目录，其他目录使用脚本绝对路径：
 
 ```powershell
 python scripts/studio_agent.py doctor
@@ -37,7 +44,7 @@ python scripts/studio_agent.py wait --job-id JOB_ID --timeout 30
 
 ## 按请求完成流程
 
-1. 先 `doctor`。服务已可用时直接调用，无须重复安装；没有可用服务且尚未注册运行时则按安装说明初始化，再 `start`。不得重启正在工作的实例来抢占端口。
+1. 先 `doctor`；`models_ready` 表示有加载成功的凭据且模型文件仍完整。服务已可用时直接调用，无须重复安装；没有可用服务且尚未注册运行时则按安装说明初始化，再 `start`。不得重启正在工作的实例来抢占端口。
 2. 导入用户指定的文件或链接，保存返回的 `job_id`。仅转文字时 `auto_ai=false`；用户同时要求 AI 纠错/生成且已配置时可设为 true。
 3. 导入、纠错、生成、报告与检测均可能异步。每次 `wait` 最多 60 秒；`pending=true` 表示继续查询，不是完成。`status=error` 时保留并报告已完成部分，不能把失败或停止说成全部成功。
 4. 要保留结构时，先纠错/拆结构，再生成。`same` 保持商品，`switch` 必须提供目标商品事实；`original` 会重新设计骨架，只在用户要求原创时用。保持段落功能、数量和顺序。输入文案被改动后重新拆结构；不把识别猜测、拍摄建议或未经确认的价格功效当成事实。

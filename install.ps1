@@ -27,12 +27,37 @@ function Find-VcsPython {
     if (Test-Path -LiteralPath $bundled) { $candidates += @{ Command = $bundled; Prefix = @() } }
     foreach ($candidate in $candidates) {
         try {
-            $arguments = @($candidate.Prefix) + @('-c', 'import sys,json; print(json.dumps(sys.executable)); sys.exit(0 if (3,10)<=sys.version_info[:2]<=(3,12) else 1)')
+            $arguments = @($candidate.Prefix) + @('-c', 'import sys,json,struct; print(json.dumps(sys.executable)); sys.exit(0 if (3,10)<=sys.version_info[:2]<=(3,12) and struct.calcsize(chr(80))==8 else 1)')
             $resolved = & $candidate.Command @arguments 2>$null
             if ($LASTEXITCODE -eq 0 -and $resolved) { return [string]((@($resolved)[-1]) | ConvertFrom-Json) }
         } catch { }
     }
-    throw 'Python 3.10-3.12 was not found. Install Python 3.12 from https://www.python.org/downloads/windows/ and run this command again.'
+    return ''
+}
+
+function Install-VcsPython {
+    param([string]$Root)
+    $pythonRoot = Join-Path $Root 'python-3.12.10'
+    $executable = Join-Path $pythonRoot 'tools/python.exe'
+    Write-Host '[Python] No compatible interpreter found. Installing private Python (no system PATH changes)...'
+    New-Item -ItemType Directory -Path $pythonRoot -Force | Out-Null
+    $archivePath = Join-Path $pythonRoot 'python.nupkg'
+    Invoke-WebRequest -UseBasicParsing -Uri 'https://api.nuget.org/v3-flatcontainer/python/3.12.10/python.3.12.10.nupkg' -OutFile $archivePath
+    if ((Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash -ne '0eb85c2dfccccf1b17352de4c397f69194035b7d37149eacc16f1147d93de3b8') { throw 'Private Python SHA256 mismatch.' }
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $archive = [IO.Compression.ZipFile]::OpenRead($archivePath)
+    try {
+        foreach ($entry in $archive.Entries) {
+            if (-not $entry.FullName.StartsWith('tools/') -or $entry.FullName.EndsWith('/')) { continue }
+            $target = [IO.Path]::GetFullPath((Join-Path $pythonRoot $entry.FullName))
+            if (-not $target.StartsWith([IO.Path]::GetFullPath($pythonRoot) + [IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)) { throw 'Unsafe Python package path.' }
+            [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($target)) | Out-Null
+            [IO.Compression.ZipFileExtensions]::ExtractToFile($entry,$target,$true)
+        }
+    } finally { $archive.Dispose() }
+    & $executable -c 'import sys,venv,ensurepip; assert sys.version_info[:2] == (3,12)'
+    if ($LASTEXITCODE -ne 0) { throw 'Private Python failed its startup check.' }
+    return $executable
 }
 
 function Get-VcsTargets {
@@ -64,7 +89,13 @@ $vcsFailure = $null
 try {
     if ($env:OS -ne 'Windows_NT') { throw 'The complete local runtime currently requires Windows 10/11.' }
     [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
-    $vcsPython = Find-VcsPython $Python
+    if (-not [Environment]::Is64BitOperatingSystem) { throw 'The local runtime requires 64-bit Windows 10/11.' }
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+    $vcsRuntimeRoot = $(if ($RuntimeHome) { [IO.Path]::GetFullPath($RuntimeHome) } elseif ($env:VIDEO_COPY_STUDIO_HOME) { [IO.Path]::GetFullPath($env:VIDEO_COPY_STUDIO_HOME) } else { Join-Path $env:LOCALAPPDATA 'VideoCopyStudio' })
+    $vcsPrivatePython = Join-Path $vcsRuntimeRoot 'python-3.12.10/tools/python.exe'
+    $vcsPreferredPython = $(if ($Python) { $Python } elseif (Test-Path -LiteralPath $vcsPrivatePython) { $vcsPrivatePython } else { '' })
+    $vcsPython = Find-VcsPython $vcsPreferredPython
+    if (-not $vcsPython) { $vcsPython = Install-VcsPython $vcsRuntimeRoot }
     $vcsTargets = @(Get-VcsTargets $Agent $SkillsDir)
     $vcsRepo = 'ASK-022/video-copy-studio-skill'
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
@@ -116,22 +147,42 @@ try {
     $vcsPrimary = $vcsInstalled[0]
     if (-not $SkillOnly) {
         Write-Host '[3/4] Preparing the local runtime (first installation may take a while)...'
-        $runtimeArguments = @()
-        if ($RuntimeHome) { $runtimeArguments = @('--runtime-home', $RuntimeHome) }
+        $runtimeArguments = @('--runtime-home', $vcsRuntimeRoot)
         $doctorText = & $vcsPython (Join-Path $vcsPrimary 'scripts/studio_agent.py') @runtimeArguments doctor
         if ($LASTEXITCODE -ne 0) { throw 'Runtime inspection failed.' }
         $doctor = ($doctorText -join "`n") | ConvertFrom-Json
-        if (-not ($doctor.data.service -and $doctor.data.service.ok -and $doctor.data.service.asr_ready)) {
-            if (-not $doctor.data.runtime_registered) {
-                & $vcsPython (Join-Path $vcsPrimary 'scripts/bootstrap.py') @runtimeArguments --install --download-ffmpeg
-                if ($LASTEXITCODE -ne 0) { throw 'The Skill is installed, but runtime setup failed. See bootstrap.log and rerun the installer after fixing the error.' }
+        if ($doctor.data.runtime_registered) {
+            $saved = Get-Content -LiteralPath (Join-Path $vcsRuntimeRoot 'runtime.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+            & $vcsPython (Join-Path $vcsPrimary 'scripts/bootstrap.py') @runtimeArguments --register-existing --prepare-models --asr-root $saved.asr_root --python $saved.python --ffmpeg $saved.ffmpeg --port $saved.port
+        } else {
+            & $vcsPython (Join-Path $vcsPrimary 'scripts/bootstrap.py') @runtimeArguments --install --download-ffmpeg
+        }
+        if ($LASTEXITCODE -ne 0) { throw 'Runtime or model preparation failed. See bootstrap.log / models.log. Installation is incomplete; fix the error and rerun.' }
+        $saved = Get-Content -LiteralPath (Join-Path $vcsRuntimeRoot 'runtime.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+        $vcsShell = New-Object -ComObject WScript.Shell
+        foreach ($folder in @([Environment]::GetFolderPath('Desktop'),[Environment]::GetFolderPath('Programs'))) {
+            if ($folder -and (Test-Path -LiteralPath $folder)) {
+                try {
+                    $shortcut = $vcsShell.CreateShortcut((Join-Path $folder 'Video Copy Studio.lnk'))
+                    $shortcut.TargetPath = $saved.pythonw
+                    $shortcut.Arguments = '"' + $saved.launcher + '"'
+                    $shortcut.WorkingDirectory = $vcsRuntimeRoot
+                    $shortcut.Description = 'Start Video Copy Studio and open its local Web page'
+                    $shortcut.Save()
+                } catch { Write-Warning 'Desktop shortcut unavailable; use the launcher in RuntimeHome.' }
             }
-            Write-Host '[4/4] Starting the local client...'
-            $startArguments = @('start')
-            if (-not $NoOpen) { $startArguments += '--open' }
-            & $vcsPython (Join-Path $vcsPrimary 'scripts/studio_agent.py') @runtimeArguments @startArguments
-            if ($LASTEXITCODE -ne 0) { throw 'The Skill is installed, but the local client did not start.' }
-        } else { Write-Host '[4/4] Reusing the already-running local studio.' }
+        }
+        Write-Host '[4/4] Starting/verifying the local client...'
+        $startArguments = @('start')
+        if (-not $NoOpen) { $startArguments += '--open' }
+        & $vcsPython (Join-Path $vcsPrimary 'scripts/studio_agent.py') @runtimeArguments @startArguments
+        if ($LASTEXITCODE -ne 0) { throw 'The local client did not start. See server.log.' }
+        $verificationText = & $vcsPython (Join-Path $vcsPrimary 'scripts/studio_agent.py') @runtimeArguments doctor
+        if ($LASTEXITCODE -ne 0) { throw 'Final readiness check failed.' }
+        $verification = ($verificationText -join "`n") | ConvertFrom-Json
+        if (-not ($verification.data.models_ready -and $verification.data.service.ok -and $verification.data.service.asr_ready)) { throw 'Final readiness check failed: models or service are not ready.' }
+        Write-Host ('Web: ' + $verification.data.service_url + '/')
+        Write-Host ('Reopen: double-click Video Copy Studio on Desktop, or ' + (Join-Path $vcsRuntimeRoot '打开文案工坊.cmd'))
     } else { Write-Host '[3/4] Runtime setup skipped (-SkillOnly).'; Write-Host '[4/4] Skill installation complete.' }
     Write-Host ('Installed ' + $vcsRelease.tag_name + '. Restart your Agent or start a new chat. Configure your own AI Key in the local studio Settings.')
 } catch {

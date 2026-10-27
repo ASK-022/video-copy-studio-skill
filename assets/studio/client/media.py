@@ -80,8 +80,12 @@ def public_douyin(url, target, progress):
     progress('正在通过公开播放页读取视频（不读取个人浏览器登录状态）…')
     candidates = []
     with sync_playwright() as p:
-        browser = p.chromium.launch(channel='chrome', headless=True,
-                                    args=['--mute-audio','--autoplay-policy=no-user-gesture-required'])
+        launch_args=['--mute-audio','--autoplay-policy=no-user-gesture-required']
+        try:
+            browser = p.chromium.launch(channel='chrome', headless=True, args=launch_args)
+        except Exception:
+            # The team installer provisions Playwright Chromium when Chrome is absent.
+            browser = p.chromium.launch(headless=True, args=launch_args)
         try:
             context = browser.new_context(user_agent=UA, locale='zh-CN')
             page = context.new_page()

@@ -2,11 +2,11 @@
 
 本地视频/音频或公开链接 → SenseVoice 转写 → AI 纠错与结构分析 → 同商品裂变/换商品套结构 → 文案汇总、Excel 拍摄表、可选飞书电子表格。
 
-这是可分发的 Skill 与客户端源码包，不是内含模型和所有依赖的离线 EXE。完整本地运行时当前支持 **Windows 10/11 + Python 3.10–3.12**。Agent 需要执行本机命令的能力；纯聊天或远程云 Agent 无法直接访问用户桌面文件。
+完整本地运行时支持 **Windows 10/11 64 位（x64）**。首次在线安装会自动准备 Python、依赖和模型；发布 ZIP 不包含大模型，不是离线安装包。Agent 需要执行本机命令的能力；纯聊天或远程云 Agent 无法直接访问用户桌面文件。
 
 ## 一条命令安装
 
-让同事的 Agent 在 **Windows PowerShell** 执行这一行即可，不需要先安装 Git；需要已有 Python 3.10–3.12：
+让同事的 Agent 在 **Windows PowerShell** 执行这一行即可，不需要预装 Git、Python 或模型：
 
 ```powershell
 irm https://raw.githubusercontent.com/ASK-022/video-copy-studio-skill/main/install.ps1 | iex
@@ -14,7 +14,36 @@ irm https://raw.githubusercontent.com/ASK-022/video-copy-studio-skill/main/insta
 
 安装器自动获取最新正式 Release、核验 SHA256，安装到本机已经存在的 Codex / Claude Code / OpenClaw 目录；同时装有多个 Agent 时会分别安装。没有检测到这些 Agent 目录时默认安装到 Codex。已有同名版本会先保留目录外备份再更新。
 
-然后准备本地运行时并启动客户端；首次下载依赖可能较久，模型在第一次转写时下载。已有可用服务或已配置运行时会复用。安装后重启 Agent 或新开会话，在本地客户端设置中填写自己的 AI Key。
+随后自动完成：
+
+1. 优先使用已有的 64 位 Python 3.10–3.12；找不到时从官方 Python NuGet 下载独立 Python，核验 SHA256，不改系统 PATH。
+2. 安装独立虚拟环境、CPU 版 PyTorch、转写/导出/检测依赖，准备 FFmpeg / FFprobe 和公开播放页使用的独立 Chromium。
+3. **安装时下载并实际加载** SenseVoice Small、中文标点、中文时间对齐模型，并验证包内 OCR ONNX 模型；执行语音和 OCR 推理自检。首次转写无需再等待这些模型下载。
+4. 创建桌面及开始菜单的 **Video Copy Studio** 快捷方式，启动 Web 服务，验证服务及模型就绪，自动打开浏览器。
+
+已有运行时及模型会复用，保留个人资料；正在运行的客户端不会被强制重启。安装成功后重启 Agent 或新开会话，在客户端设置里填写**自己的** AI Key。没有 Key 也可以本地转写；AI 纠错和生成需要用户配置自己的服务。
+
+首次安装会下载较大依赖与模型，请保持网络连接并预留数 GB 空间；终端显示完成才表示成功。网络失败、模型加载失败或端口被无关程序占用时，会明确报错并停止，可修复后重跑同一命令，不把部分安装报告为完成。
+
+## 打开 Web 客户端
+
+- **第一次**：安装成功自动打开，默认地址是 [http://127.0.0.1:8777/](http://127.0.0.1:8777/)。
+- **以后或重启电脑后**：双击桌面/开始菜单的 **Video Copy Studio**，它会启动本地服务并打开页面。
+- **服务已经运行**：浏览器直接打开上述地址即可。没有设置开机自启动；重启电脑后先用快捷方式。
+- 没有桌面快捷方式时，在 PowerShell 执行下面这一行（默认安装位置）；自定义 RuntimeHome 则换成对应目录：
+
+```powershell
+& "$env:LOCALAPPDATA\VideoCopyStudio\打开文案工坊.cmd"
+```
+
+只供本机访问，无需部署公网服务器。改了端口时，以安装器最终打印的 Web 地址为准。
+
+Agent 无需依赖系统 PATH 中的 `python`，默认安装后的 CLI 入口为：
+
+```powershell
+& "$env:LOCALAPPDATA\VideoCopyStudio\studio.cmd" doctor
+& "$env:LOCALAPPDATA\VideoCopyStudio\studio.cmd" start --open
+```
 
 明确只安装到某一种 Agent，可使用：
 
@@ -52,12 +81,13 @@ python scripts/studio_agent.py doctor
 python scripts/studio_agent.py start --open
 ```
 
-- `bootstrap` 不加参数只检查；`--install` 才联网下载固定版本上游转写源码与 Python 依赖。首次可能较久，进度/错误日志在运行时目录的 `bootstrap.log`。
+- 一条命令安装的用户不必再执行此节。手动部署需先准备 Python 3.10–3.12；`bootstrap` 不加参数只检查，`--install` 会下载固定版本上游、依赖、浏览器和模型。日志在运行时目录的 `bootstrap.log`、`models.log`。
 - FFmpeg 已安装时可替换为 `--install --ffmpeg "C:/ffmpeg/bin/ffmpeg.exe"`；同目录须有 `ffprobe.exe`。
-- 默认使用 CPU，不需要 GPU；SenseVoice/VAD/标点/时间对齐模型首次转写按需下载，不在 ZIP 中。
+- 默认使用 CPU，不需要 GPU；SenseVoice、标点、时间对齐与 OCR 模型安装时验证，不在 ZIP 中。静音检测使用 FFmpeg，不需要额外 VAD 权重。
 - 默认运行时目录是 `%LOCALAPPDATA%/VideoCopyStudio`；可设置 `VIDEO_COPY_STUDIO_HOME` 或每次传 `--runtime-home`。该目录保存依赖、模型、个人数据与加密 Key，更新 Skill 不会删除它。
 - 如果端口 8777 已被其他程序占用，初始化时用 `--port 8787`，不要停掉无关程序。
-- 用户原有转写环境可用 `--register-existing --asr-root PATH --python PATH --ffmpeg PATH` 注册；不复制模型或密钥。
+- 用户原有转写环境可用 `--register-existing --asr-root PATH --python PATH --ffmpeg PATH` 注册；加 `--prepare-models` 验证/补齐模型。安装器升级已注册环境时自动补做这一步。不复制密钥。
+- 注册已有客户端时，可用 `--data-dir PATH` 继续使用原有参考库；仅记录路径，不复制用户资料。后续升级保留注册的数据目录。
 
 ## 配置自己的服务
 

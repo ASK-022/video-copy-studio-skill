@@ -3,10 +3,12 @@
 所有动作通过 UTF-8 JSON 文件输入：
 
 ```powershell
-python scripts/studio_agent.py invoke --request request.json
+& "$env:LOCALAPPDATA\VideoCopyStudio\studio.cmd" invoke --request request.json
 ```
 
 CLI 公共参数放在子命令前：`--base-url http://127.0.0.1:8777`、`--runtime-home PATH`。不支持远程公网服务地址。
+
+`doctor` 的 `models_ready=true` 表示安装期实际加载/推理自检通过且文件清单仍完整；`service` 是当前运行中的 HTTP 服务状态。`start --open` 在未启动时启动本地服务，再打开浏览器；已启动则直接打开。模型与依赖日志保存在运行时目录。自定义运行时目录时替换上面的 `VideoCopyStudio` 路径。
 
 ## 动作参数
 

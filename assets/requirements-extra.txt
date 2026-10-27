@@ -1,0 +1,8 @@
+# Installed into each teammate's runtime; keys/models/data are never in the skill ZIP.
+rapidocr-onnxruntime==1.4.4
+scenedetect==0.7.1
+rapidfuzz>=3.14,<4
+openpyxl==3.1.5
+yt-dlp
+playwright>=1.50,<2
+librosa>=0.10

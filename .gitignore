@@ -1,0 +1,10 @@
+.git/
+__pycache__/
+*.pyc
+.env
+.venv/
+node_modules/
+.studio/
+dist/
+runtime.json
+*.log

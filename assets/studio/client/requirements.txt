@@ -1,0 +1,4 @@
+# Additional local screen-text dependency for the existing video-transcriber runtime.
+rapidocr-onnxruntime==1.4.4
+scenedetect==0.7.1
+rapidfuzz>=3.14,<4

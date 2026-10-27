@@ -1,0 +1,4 @@
+interface:
+  display_name: "文案工坊"
+  short_description: "本地视频转写、纠错拆解、保留原结构生成文案，并导出团队拍摄表格。"
+  default_prompt: "使用 $video-copy-studio 将这条参考视频转写并纠错，保留原结构生成同商品文案，导出脚本文案表。"

@@ -1,0 +1,311 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Video Copy Studio request",
+  "type": "object",
+  "required": [
+    "action"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "health",
+        "list",
+        "providers",
+        "import",
+        "get",
+        "correct",
+        "analyze",
+        "extract-product",
+        "generate",
+        "stop",
+        "report",
+        "markers",
+        "export",
+        "export-report",
+        "feishu"
+      ]
+    },
+    "job_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "file": {
+      "type": "string",
+      "minLength": 1
+    },
+    "url": {
+      "type": "string",
+      "minLength": 8
+    },
+    "facts": {
+      "type": "string",
+      "maxLength": 5000
+    },
+    "auto_ai": {
+      "type": "boolean",
+      "default": false
+    },
+    "provider": {
+      "enum": [
+        "local",
+        "tikhub"
+      ],
+      "default": "local"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20000
+    },
+    "mode": {
+      "enum": [
+        "same",
+        "switch",
+        "original"
+      ],
+      "default": "same"
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 3
+    },
+    "direction": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "quality_check": {
+      "type": "boolean",
+      "default": true
+    },
+    "target_duration": {
+      "type": "integer",
+      "minimum": 10,
+      "maximum": 1800
+    },
+    "audience": {
+      "type": "string",
+      "maxLength": 300
+    },
+    "purpose": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "scene": {
+      "enum": [
+        "transcript",
+        "summary",
+        "breakdown",
+        "storyboard",
+        "prompts",
+        "all"
+      ]
+    },
+    "visual_mode": {
+      "enum": [
+        "local",
+        "cue",
+        "vision"
+      ],
+      "default": "local"
+    },
+    "vision_provider_id": {
+      "type": "string"
+    },
+    "options": {
+      "type": "object"
+    },
+    "batch_id": {
+      "type": "string",
+      "default": "latest"
+    },
+    "indices": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "integer",
+        "minimum": 1
+      }
+    },
+    "format": {
+      "enum": [
+        "txt",
+        "zip",
+        "json",
+        "xlsx",
+        "md"
+      ]
+    },
+    "template": {
+      "enum": [
+        "script",
+        "shooting",
+        "archive"
+      ],
+      "default": "script"
+    },
+    "output": {
+      "type": "string",
+      "minLength": 1
+    },
+    "overwrite": {
+      "type": "boolean",
+      "default": false
+    },
+    "edits": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 20000
+      }
+    },
+    "write": {
+      "type": "boolean",
+      "default": false
+    },
+    "table_options": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "product": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "reference_url": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "required_time": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "completion": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "shot_requirements": {
+          "type": "string",
+          "maxLength": 20000
+        },
+        "shot_reference_1": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "shot_reference_2": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "quantity": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 1000000
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "import"
+          }
+        }
+      },
+      "then": {
+        "oneOf": [
+          {
+            "required": [
+              "file"
+            ],
+            "not": {
+              "required": [
+                "url"
+              ]
+            }
+          },
+          {
+            "required": [
+              "url"
+            ],
+            "not": {
+              "required": [
+                "file"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "enum": [
+              "get",
+              "correct",
+              "analyze",
+              "extract-product",
+              "generate",
+              "stop",
+              "report",
+              "markers",
+              "export",
+              "export-report",
+              "feishu"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "job_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "enum": [
+              "export",
+              "export-report"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "output"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "generate"
+          },
+          "mode": {
+            "const": "switch"
+          }
+        },
+        "required": [
+          "mode"
+        ]
+      },
+      "then": {
+        "required": [
+          "facts"
+        ]
+      }
+    }
+  ]
+}

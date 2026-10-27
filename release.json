@@ -1,0 +1,7 @@
+{
+  "version": "1.0.0",
+  "repository": "ASK-022/video-copy-studio-skill",
+  "runtime_platform": "windows",
+  "python": "3.10-3.12",
+  "upstream_revision": "bfce75fb1d9cf3e8444d531a4f96ec49faa467cf"
+}

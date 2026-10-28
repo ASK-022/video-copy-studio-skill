@@ -8,11 +8,13 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import urllib.request
 import zipfile
 from prepare_models import model_status
 from browser_setup import prepare_browser
 from extra_setup import prepare_extras
+from download_sources import pip_install
 
 SKILL=Path(__file__).resolve().parents[1]
 UPSTREAM='https://codeload.github.com/Acclerate/video-transcriber/zip/bfce75fb1d9cf3e8444d531a4f96ec49faa467cf'
@@ -53,8 +55,18 @@ def write_launcher(root, python):
 
 
 def download(url,path,sha256=None):
-    with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'video-copy-studio-installer/1.0'}),timeout=90) as source,path.open('wb') as dest:
-        shutil.copyfileobj(source,dest)
+    from urllib.parse import urlparse
+    host=urlparse(url).hostname
+    print('正在下载 '+path.name+'：'+str(host),file=sys.stderr,flush=True)
+    started=last=time.monotonic();received=0
+    with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'video-copy-studio-installer/1.0'}),timeout=30) as source,path.open('wb') as dest:
+        total=int(source.headers.get('Content-Length') or 0)
+        while chunk:=source.read(64*1024):
+            dest.write(chunk);received+=len(chunk);now=time.monotonic()
+            if now-started>300:raise TimeoutError('下载总时长超过 5 分钟，切换备用地址。')
+            if now-last>=10:
+                progress=f'{received/1024/1024:.1f} MB'+(f' / {total/1024/1024:.1f} MB' if total else '')
+                print('下载进度：'+progress,file=sys.stderr,flush=True);last=now
     if sha256 and hashlib.sha256(path.read_bytes()).hexdigest()!=sha256:raise RuntimeError('下载文件校验失败，未安装。')
 
 
@@ -64,7 +76,13 @@ def upstream(root):
     if root.exists() and any(root.iterdir()):raise RuntimeError('转写目录非空且未被此安装器管理，请使用空目录或 --register-existing。')
     root.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory() as temp:
-        archive=Path(temp)/'upstream.zip';download(UPSTREAM,archive,UPSTREAM_SHA256)
+        archive=Path(temp)/'upstream.zip'
+        bundled=SKILL/'assets/bootstrap/video-transcriber-pinned.zip'
+        if bundled.is_file():
+            if hashlib.sha256(bundled.read_bytes()).hexdigest()!=UPSTREAM_SHA256:raise RuntimeError('内置转写源码校验失败，未安装。')
+            print('使用已校验的内置转写源码，无需连接 GitHub。',file=sys.stderr,flush=True)
+            shutil.copyfile(bundled,archive)
+        else:download(UPSTREAM,archive,UPSTREAM_SHA256)
         with zipfile.ZipFile(archive) as source:
             for info in source.infolist():
                 parts=Path(info.filename).parts[1:]
@@ -115,11 +133,12 @@ def main():
         folder=root/'ffmpeg';folder.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory() as temp:
             archive=Path(temp)/'ffmpeg.zip'
-            urls=['https://github.com/GyanD/codexffmpeg/releases/download/9.0.2/'+FFMPEG_ARCHIVE,
-                  'https://www.gyan.dev/ffmpeg/builds/packages/'+FFMPEG_ARCHIVE]
+            urls=['https://www.gyan.dev/ffmpeg/builds/packages/'+FFMPEG_ARCHIVE,
+                  'https://github.com/GyanD/codexffmpeg/releases/download/9.0.2/'+FFMPEG_ARCHIVE]
             for url in urls:
                 try:download(url,archive,FFMPEG_SHA256);break
                 except (OSError,RuntimeError):
+                    print('当前下载地址未完成，尝试备用地址。',file=sys.stderr,flush=True)
                     if url==urls[-1]:raise
             with zipfile.ZipFile(archive) as source:
                 for name in ('ffmpeg.exe','ffprobe.exe'):
@@ -142,15 +161,12 @@ def main():
         (asr/'.env').write_text('ENABLE_GPU=false\nMODEL_CACHE_DIR='+model_cache.as_posix()+'\nLOG_LEVEL=INFO\n',encoding='utf-8')
         constraints=asr/'studio-constraints.txt';constraints.write_text('huggingface-hub<1\ntransformers<5\ntorch==2.6.0\ntorchaudio==2.6.0\nnumpy<2.3\n',encoding='ascii')
         log=root/'bootstrap.log'
-        commands=[[str(python),'-m','pip','install','--upgrade','pip>=25.2,<27'],
-                  [str(python),'-m','pip','install','torch==2.6.0','torchaudio==2.6.0','--index-url','https://pypi.org/simple'],
-                  [str(python),'-c','import torch,torchaudio; assert torch.version.cuda is None, "Expected the Windows CPU build"'],
-                  [str(python),'-m','pip','install','-r',str(asr/'requirements.txt'),'-c',str(constraints)]]
+        pip_install(python,['--upgrade','pip>=25.2,<27'],log)
+        pip_install(python,['torch==2.6.0','torchaudio==2.6.0'],log)
         with log.open('a',encoding='utf-8') as output:
-            for command in commands:
-                print('正在安装依赖，日志：'+str(log),file=sys.stderr,flush=True)
-                result=subprocess.run(command,stdout=output,stderr=output,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
-                if result.returncode:raise RuntimeError('依赖安装失败，查看 bootstrap.log；修复网络后可重跑安装，现有数据保留。')
+            result=subprocess.run([str(python),'-c','import torch,torchaudio; assert torch.version.cuda is None, "Expected the Windows CPU build"'],stdout=output,stderr=output)
+            if result.returncode:raise RuntimeError('CPU 推理依赖自检失败，查看 bootstrap.log；安装未完成。')
+        pip_install(python,['-r',str(asr/'requirements.txt'),'-c',str(constraints)],log)
     browser_path=previous.get('browser_path')
     if args.install or args.prepare_models:
         prepare_extras(root,python)

@@ -2,6 +2,7 @@
 from pathlib import Path
 import subprocess
 import sys
+from download_sources import pip_install
 
 REQUIREMENTS=Path(__file__).resolve().parents[1]/'assets/requirements-extra.txt'
 PROBE="""from importlib.metadata import version
@@ -35,10 +36,5 @@ def prepare_extras(root,python):
     log=root/'bootstrap.log'
     print('补装文案工坊依赖（含 PDF 解析）；日志：'+str(log),file=sys.stderr,flush=True)
     constraints=root/'studio-extra-constraints.txt';constraints.write_text('numpy<2.3\n',encoding='ascii')
-    try:
-        with log.open('a',encoding='utf-8') as output:
-            result=subprocess.run([str(python),'-m','pip','install','-r',str(REQUIREMENTS),'-c',str(constraints)],
-                stdout=output,stderr=output,timeout=900,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
-        if result.returncode or not extra_status(python):raise RuntimeError('文案工坊新增依赖未就绪，安装未完成。请查看 bootstrap.log，修复网络后重跑安装。')
-    except (OSError,subprocess.TimeoutExpired) as exc:
-        raise RuntimeError('文案工坊依赖安装失败或超时，安装未完成。请查看 bootstrap.log 后重试。') from exc
+    pip_install(python,['-r',str(REQUIREMENTS),'-c',str(constraints)],log,timeout=900)
+    if not extra_status(python):raise RuntimeError('文案工坊新增依赖未就绪，安装未完成。请查看 bootstrap.log，修复网络后重跑安装。')

@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+from download_sources import pip_install,BROWSER_HOSTS
 
 PROBE = '''from pathlib import Path
 from playwright.sync_api import sync_playwright
@@ -53,18 +54,26 @@ def prepare_browser(root, python, path=None):
 
         # An old registered runtime may have ASR installed but no Playwright package.
         if run(['-c', 'import playwright.sync_api'], '检查 Playwright 依赖').returncode:
-            if run(['-m', 'pip', 'install', 'playwright>=1.50,<2'], '补装 Playwright 依赖').returncode:
-                raise RuntimeError('Playwright 依赖安装失败，安装未完成。查看 '+str(log)+'；'+retry)
-        if run(['-m', 'playwright', 'install', 'chromium'], '下载独立 Chromium 浏览器').returncode:
-            raise RuntimeError('Chromium 下载失败，安装未完成。查看 '+str(log)+'；'+retry)
-        try:
-            result = subprocess.run([str(python), '-c', PROBE], env=browser_env(path),
-                stdout=output, stderr=output, timeout=45,
-                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-        except subprocess.TimeoutExpired as exc:
-            raise RuntimeError('Chromium 启动自检超时，安装未完成。查看 '+str(log)+'；'+retry) from exc
-        if result.returncode:
-            raise RuntimeError('Chromium 启动自检失败，安装未完成。查看 '+str(log)+'；'+retry)
+            pip_install(python,['playwright>=1.50,<2'],log)
+        if browser_status(python,path):return str(path)
+        hosts=list(BROWSER_HOSTS)
+        custom=os.environ.get('PLAYWRIGHT_CHROMIUM_DOWNLOAD_HOST') or os.environ.get('PLAYWRIGHT_DOWNLOAD_HOST')
+        if custom:hosts.insert(0,('用户指定浏览器源',custom))
+        for label,host in hosts:
+            env=browser_env(path)
+            env.pop('PLAYWRIGHT_DOWNLOAD_HOST',None);env.pop('PLAYWRIGHT_CHROMIUM_DOWNLOAD_HOST',None)
+            env['PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT']='20000'
+            if host:env.update(PLAYWRIGHT_DOWNLOAD_HOST=host,PLAYWRIGHT_CHROMIUM_DOWNLOAD_HOST=host)
+            print('准备浏览器：'+label,file=sys.stderr,flush=True)
+            output.write('\n准备浏览器：'+label+'\n');output.flush()
+            try:
+                result=subprocess.run([str(python),'-m','playwright','install','chromium'],env=env,
+                    stdout=output,stderr=output,timeout=1800,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+                if result.returncode==0 and browser_status(python,path):return str(path)
+            except (OSError,subprocess.TimeoutExpired) as exc:
+                output.write(type(exc).__name__+'\n')
+            output.write('当前浏览器源未就绪，尝试下一下载源。\n');output.flush()
+        raise RuntimeError('浏览器下载或启动自检失败，安装未完成。查看 '+str(log)+'；'+retry)
     return str(path)
 
 

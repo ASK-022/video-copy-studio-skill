@@ -15,6 +15,13 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--output',type=Path,default=Path('dist'));args=parser.parse_args()
     root=Path(__file__).resolve().parents[1];version=(root/'VERSION').read_text().strip()
     if not re.fullmatch(r'\d+\.\d+\.\d+',version):raise ValueError('VERSION 必须为三段版本号。')
+    bootstrap_assets={
+        'python-3.12.10.nupkg':'0eb85c2dfccccf1b17352de4c397f69194035b7d37149eacc16f1147d93de3b8',
+        'video-transcriber-pinned.zip':'3ee582c0b0b906769b9e0736965b7d715ab359fd82d5bcaabf87a5d44e042d08',
+    }
+    for name,digest in bootstrap_assets.items():
+        path=root/'assets/bootstrap'/name
+        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest()!=digest:raise ValueError('内置安装资源缺失或校验失败：'+name)
     files=[]
     for path in sorted(root.rglob('*')):
         relative=path.relative_to(root)

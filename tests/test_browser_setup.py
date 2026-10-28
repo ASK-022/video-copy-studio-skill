@@ -17,12 +17,12 @@ class BrowserSetup(unittest.TestCase):
 
     def test_old_runtime_missing_package_is_repaired_with_its_python(self):
         with tempfile.TemporaryDirectory(prefix='浏览器 空格') as folder:
-            with patch('browser_setup.subprocess.run', side_effect=[self.result(1),self.result(),self.result(),self.result()]) as run:
+            with patch('browser_setup.browser_status',side_effect=[False,True]),patch('browser_setup.pip_install') as pip:
+              with patch('browser_setup.subprocess.run', side_effect=[self.result(1),self.result()]) as run:
                 path = prepare_browser(folder, sys.executable)
             calls = run.call_args_list
-            self.assertEqual(calls[1].args[0][1:4], ['-m','pip','install'])
-            self.assertEqual(calls[2].args[0][1:], ['-m','playwright','install','chromium'])
-            self.assertEqual(calls[3].args[0][2], PROBE)
+            self.assertEqual(pip.call_args.args[0],Path(sys.executable).resolve())
+            self.assertEqual(calls[1].args[0][1:], ['-m','playwright','install','chromium'])
             for call in calls:
                 self.assertEqual(call.args[0][0], str(Path(sys.executable).resolve()))
                 self.assertEqual(call.kwargs['env']['PLAYWRIGHT_BROWSERS_PATH'], path)
@@ -31,18 +31,28 @@ class BrowserSetup(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             with patch('browser_setup.subprocess.run', return_value=self.result()) as run:
                 prepare_browser(folder, sys.executable)
-            self.assertEqual(run.call_count, 3)
+            self.assertEqual(run.call_count, 2)
 
     def test_failure_never_rewrites_registered_runtime(self):
-        for results in ([1,1], [0,1], [0,0,1]):
+        for results in ([0,1,1], [0,0,0]):
             with self.subTest(results=results), tempfile.TemporaryDirectory() as folder:
                 config={'python':sys.executable,'data_dir':'private-data','port':8787}
                 target=Path(folder)/'runtime.json'
                 original=json.dumps(config).encode();target.write_bytes(original)
-                with patch('browser_setup.subprocess.run', side_effect=[self.result(code) for code in results]):
+                with patch('browser_setup.browser_status',return_value=False),patch('browser_setup.subprocess.run', side_effect=[self.result(code) for code in results]),patch.dict('os.environ',{'PLAYWRIGHT_DOWNLOAD_HOST':'','PLAYWRIGHT_CHROMIUM_DOWNLOAD_HOST':''}):
                     with self.assertRaisesRegex(RuntimeError,'安装未完成'):
                         repair_browser(folder, config)
                 self.assertEqual(target.read_bytes(),original)
+
+    def test_mirror_failure_uses_official_without_leaking_mirror_override(self):
+        with tempfile.TemporaryDirectory() as folder:
+            with patch('browser_setup.browser_status',side_effect=[False,True]),patch.dict('os.environ',{'PLAYWRIGHT_DOWNLOAD_HOST':'','PLAYWRIGHT_CHROMIUM_DOWNLOAD_HOST':''}):
+                with patch('browser_setup.subprocess.run',side_effect=[self.result(),self.result(1),self.result()]) as run:
+                    prepare_browser(folder,sys.executable)
+            mirror,official=run.call_args_list[1:]
+            self.assertIn('npmmirror',mirror.kwargs['env']['PLAYWRIGHT_DOWNLOAD_HOST'])
+            self.assertNotIn('PLAYWRIGHT_DOWNLOAD_HOST',official.kwargs['env'])
+            self.assertNotIn('PLAYWRIGHT_CHROMIUM_DOWNLOAD_HOST',official.kwargs['env'])
 
     def test_success_preserves_data_port_and_model_paths(self):
         with tempfile.TemporaryDirectory() as folder:

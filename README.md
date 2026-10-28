@@ -2,7 +2,7 @@
 
 视频/音频或公开链接 → 本地转写；脚本文档或粘贴原文 → 本机读取。两种入口均可分析结构，生成同商品裂变/换商品文案，汇总为 TXT、Excel 或写入指定飞书电子表格。
 
-**v1.1.1** 新增 Windows EXE 安装管理器和更新检查，沿用 v1.1.0 的功能：提供并列的「视频创作」和「脚本改写」分区，支持脚本文档多选/拖拽上传、商品资料提取、成稿版本、逐段对照、商品库、定向裂变与单条重写。完整 Agent 参数见 [references/parameters.md](references/parameters.md)。
+**v1.1.2** 新增国内下载源自动回退、内置基础 Python 与转写源码，保留 Windows EXE 安装管理器和更新检查，沿用 v1.1.0 的功能：提供并列的「视频创作」和「脚本改写」分区，支持脚本文档多选/拖拽上传、商品资料提取、成稿版本、逐段对照、商品库、定向裂变与单条重写。完整 Agent 参数见 [references/parameters.md](references/parameters.md)。
 
 ## v1.1.0 的使用方式
 
@@ -18,17 +18,34 @@ AI 生成需要每位同事自己的兼容服务配置。模型返回的段落�
 
 ## 给同事的安装说明（可直接转发）
 
-请在 Windows 10/11 64 位电脑上，从[最新正式版](https://github.com/ASK-022/video-copy-studio-skill/releases/latest)下载 `VideoCopyStudio-Setup-v1.1.1.exe` 并双击，确认运行时目录后点击“安装 / 更新”；也可在 Windows PowerShell 执行下方的一条命令。无需预装 Git、Python 或模型，首次安装需保持联网并预留数 GB 空间，安装器会准备 Python、依赖、浏览器和转写模型，并做启动自检；必须等窗口显示“安装与自检完成”或终端显示安装成功，才算完整安装。完成后双击桌面 **Video Copy Studio** 打开本机页面，在右上角“设置”里填写自己的 AI 服务与 Key；本地转写不需要 AI Key。以后从桌面快捷方式打开，更新时先保存工作并等正在运行的任务完成，再打开“文案工坊安装管理器”点击“检查更新”，查看正式版说明后点击“安装 / 更新”；命令安装者可重跑同一命令，或下载 EXE 管理器；网页“设置”里也能检查版本并进入发布页。更新会保留个人资料、模型与 Key，旧服务不会被强制结束，更新后需正常关闭旧服务并重新打开；不便关闭时，可保存工作后重启电脑，再双击快捷方式。网络下载或自检失败时，安装会明确报错，可查看运行时目录的 `installer.log`（EXE）、`bootstrap.log`、`models.log` 或 `server.log`，修复后重跑；缺少浏览器时也可执行下方的 `studio.cmd repair-browser`。浏览器就绪不代表所有平台链接都能解析，遇到登录或平台访问限制，可改用本地视频文件。
+请在 Windows 10/11 64 位电脑上，从[最新正式版](https://github.com/ASK-022/video-copy-studio-skill/releases/latest)下载 `VideoCopyStudio-Setup-v1.1.2.exe` 并双击，确认运行时目录后点击“安装 / 更新”；也可在 Windows PowerShell 执行下方的一条命令。无需预装 Git、Python 或模型，首次安装需保持联网并预留数 GB 空间，安装器会准备 Python、依赖、浏览器和转写模型，并做启动自检；必须等窗口显示“安装与自检完成”或终端显示安装成功，才算完整安装。完成后双击桌面 **Video Copy Studio** 打开本机页面，在右上角“设置”里填写自己的 AI 服务与 Key；本地转写不需要 AI Key。以后从桌面快捷方式打开，更新时先保存工作并等正在运行的任务完成，再打开“文案工坊安装管理器”点击“检查更新”，查看正式版说明后点击“安装 / 更新”；命令安装者可重跑同一命令，或下载 EXE 管理器；网页“设置”里也能检查版本并进入发布页。更新会保留个人资料、模型与 Key，旧服务不会被强制结束，更新后需正常关闭旧服务并重新打开；不便关闭时，可保存工作后重启电脑，再双击快捷方式。网络下载或自检失败时，安装会明确报错，可查看运行时目录的 `installer.log`（EXE）、`bootstrap.log`、`models.log` 或 `server.log`，修复后重跑；缺少浏览器时也可执行下方的 `studio.cmd repair-browser`。浏览器就绪不代表所有平台链接都能解析，遇到登录或平台访问限制，可改用本地视频文件。
 
 ## Windows EXE 安装与更新
 
-[下载 v1.1.1 EXE](https://github.com/ASK-022/video-copy-studio-skill/releases/download/v1.1.1/VideoCopyStudio-Setup-v1.1.1.exe) · [查看正式版与校验文件](https://github.com/ASK-022/video-copy-studio-skill/releases/latest)
+[下载 v1.1.2 EXE](https://github.com/ASK-022/video-copy-studio-skill/releases/download/v1.1.2/VideoCopyStudio-Setup-v1.1.2.exe) · [查看正式版与校验文件](https://github.com/ASK-022/video-copy-studio-skill/releases/latest)
 
-EXE 内置本版应用源码安装包、图形界面和安装脚本；首次安装仍会联网下载模型及运行依赖。创作工作区继续在本机浏览器中使用，EXE 提供安装、启动、检查更新和日志入口。安装成功后会保留一份管理器到运行时目录，并创建“文案工坊安装管理器”桌面快捷方式。
+EXE 内置本版应用源码安装包、图形界面、安装脚本、官方基础 Python 和固定提交的转写运行时源码；首次安装仍会联网下载模型及运行依赖。创作工作区继续在本机浏览器中使用，EXE 提供安装、启动、检查更新和日志入口。安装成功后会保留一份管理器到运行时目录，并创建“文案工坊安装管理器”桌面快捷方式。
 
 管理器打开时自动做一次只读版本检查，也可手动点击“检查更新”；网页“设置”里的检查为手动触发。检查仅请求本仓库的公开 GitHub Release 信息，不发送素材、脚本或 Key；只接受正式版，按数字比较版本，不主动降级。发现新版后由用户点击安装，下载 ZIP 后核验 SHA256，并执行依赖、浏览器、模型及服务自检，不会在创作期间静默覆盖程序。管理器自身如有新版 EXE，可从发布页下载并使用；已打开的旧管理器不会被原地替换。网络断开或 GitHub 限流时可继续使用已安装的本机程序。
 
-当前 EXE 未做代码签名，同页提供 `.exe.sha256`。可在 PowerShell 用 `Get-FileHash .\VideoCopyStudio-Setup-v1.1.1.exe -Algorithm SHA256` 对照校验；受单位软件策略限制时，请按单位要求安装。默认运行时位于 `%LOCALAPPDATA%\VideoCopyStudio`，与 GitHub 源码和个人 Agent 技能目录分开。
+当前 EXE 未做代码签名，同页提供 `.exe.sha256`。可在 PowerShell 用 `Get-FileHash .\VideoCopyStudio-Setup-v1.1.2.exe -Algorithm SHA256` 对照校验；受单位软件策略限制时，请按单位要求安装。默认运行时位于 `%LOCALAPPDATA%\VideoCopyStudio`，与 GitHub 源码和个人 Agent 技能目录分开。
+
+## 下载线路与无代理安装
+
+v1.1.2 的在线安装按以下方式获取资源，设置仅对本次安装命令生效，不修改全局 pip 配置，不关闭 HTTPS 证书检查：
+
+| 资源 | 首选 | 失败后的处理 |
+|---|---|---|
+| 基础 Python | 安装包内置的官方 Python 3.12.10 NuGet，校验固定 SHA256 | 缺少内置包的精简版才尝试官方 NuGet；校验失败直接停止 |
+| 转写运行时源码 | 内置固定提交 ZIP，校验固定 SHA256 | 缺少内置包的精简版才连接 GitHub；校验失败直接停止 |
+| Python 依赖 | 清华镜像 | 华为镜像 → PyPI 官方；每次只使用一个源 |
+| Chromium | 已有浏览器缓存通过自检时复用；否则使用 npmmirror 镜像 | Playwright 官方下载服务；仍须实际启动自检 |
+| FFmpeg / FFprobe | Gyan 构建下载站，核验固定 SHA256 | 同一构建的 Gyan GitHub Release |
+| SenseVoice、标点和时间对齐模型 | 魔搭 ModelScope | 保留已下载缓存，网络修复后重试；不切换成未经验证的模型 |
+
+Python 镜像地址参考[清华镜像使用说明](https://mirror.tuna.tsinghua.edu.cn/help/pypi/)；浏览器镜像使用 [cnpm 维护者公布的 Playwright 配置](https://github.com/cnpm/binary-mirror-config/blob/master/package.json)。如果设置过 `PLAYWRIGHT_DOWNLOAD_HOST`，浏览器会先尝试该自定义源，再使用默认回退线路。
+
+EXE 仍属于在线安装器，不包含模型、PyTorch 或浏览器二进制。获取 EXE、检查更新和联网升级目前仍使用 GitHub；无法访问 GitHub 时，可由同事转发本版 EXE，再从内置安装包开始安装。不同单位网络、运营商和镜像同步状态可能不同，不能保证所有电脑都无需代理；所有源失败时明确保留错误和日志，不报告安装完成。
 
 ## 一条命令安装
 
@@ -42,7 +59,7 @@ irm https://raw.githubusercontent.com/ASK-022/video-copy-studio-skill/main/insta
 
 随后自动完成：
 
-1. 优先使用已有的 64 位 Python 3.10–3.12；找不到时从官方 Python NuGet 下载独立 Python，核验 SHA256，不改系统 PATH。
+1. 优先使用已有的 64 位 Python 3.10–3.12；找不到时从本版 ZIP 内置的官方 Python NuGet 包安装独立 Python，核验固定 SHA256，不改系统 PATH；旧的精简包缺少此资源时才尝试官方 NuGet。
 2. 安装独立虚拟环境、CPU 版 PyTorch、转写/导出/检测依赖，准备 FFmpeg / FFprobe 和公开播放页使用的独立 Chromium。
    升级已有环境也会检查并补装本版新增依赖，包括 PDF 读取；`doctor` 中 `dependencies_ready=true` 表示依赖检查和 PDF 引擎自检通过。
 3. **安装时下载并实际加载** SenseVoice Small、中文标点、中文时间对齐模型，并验证包内 OCR ONNX 模型；执行语音和 OCR 推理自检。首次转写无需再等待这些模型下载。
@@ -93,7 +110,9 @@ Agent 无需依赖系统 PATH 中的 `python`，默认安装后的 CLI 入口为
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/ASK-022/video-copy-studio-skill/main/install.ps1))) -Agent claude
 ```
 
-安装器参数：`-Agent auto/codex/claude/openclaw/custom`；自定义目录配合 `-SkillsDir`；`-SkillOnly` 只装技能、不下载运行时；`-NoOpen` 不打开浏览器；`-Python` 指定已有 Python；`-RuntimeHome` 指定独立运行时目录；`-ReleaseTag v1.1.1` 指定正式版；`-PackagePath` 从带相邻 SHA256 文件的本地 ZIP 安装。升级不复制、清除或共享个人 Key 和素材。
+下载线路默认国内镜像优先，失败后逐个回退；日志会显示正在使用的下载源。
+
+安装器参数：`-Agent auto/codex/claude/openclaw/custom`；自定义目录配合 `-SkillsDir`；`-SkillOnly` 只装技能、不下载运行时；`-NoOpen` 不打开浏览器；`-Python` 指定已有 Python；`-RuntimeHome` 指定独立运行时目录；`-ReleaseTag v1.1.2` 指定正式版；`-PackagePath` 从带相邻 SHA256 文件的本地 ZIP 安装。`-Port` 指定全新运行时的端口；`-NoShortcuts` 用于独立验证时不创建个人快捷方式。升级不复制、清除或共享个人 Key 和素材。
 
 ## 手动安装到 Agent
 

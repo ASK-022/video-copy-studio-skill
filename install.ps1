@@ -6,7 +6,9 @@ param(
     [string]$RuntimeHome = '',
     [ValidatePattern('^v[0-9]+\.[0-9]+\.[0-9]+$')][string]$ReleaseTag,
     [string]$PackagePath = '',
+    [ValidateRange(1024,65535)][int]$Port = 8777,
     [switch]$SkillOnly,
+    [switch]$NoShortcuts,
     [switch]$NoOpen
 )
 
@@ -38,13 +40,18 @@ function Find-VcsPython {
 }
 
 function Install-VcsPython {
-    param([string]$Root)
+    param([string]$Root, [string]$BundledPackage = '')
     $pythonRoot = Join-Path $Root 'python-3.12.10'
     $executable = Join-Path $pythonRoot 'tools/python.exe'
     Write-Host '[Python] No compatible interpreter found. Installing private Python (no system PATH changes)...'
     New-Item -ItemType Directory -Path $pythonRoot -Force | Out-Null
     $archivePath = Join-Path $pythonRoot 'python.nupkg'
-    Invoke-WebRequest -UseBasicParsing -Uri 'https://api.nuget.org/v3-flatcontainer/python/3.12.10/python.3.12.10.nupkg' -OutFile $archivePath
+    if ($BundledPackage -and (Test-Path -LiteralPath $BundledPackage)) {
+        Write-Host '[Python] Using bundled official Python package; no NuGet connection required.'
+        Copy-Item -LiteralPath $BundledPackage -Destination $archivePath -Force
+    } else {
+        Invoke-WebRequest -UseBasicParsing -TimeoutSec 60 -Uri 'https://api.nuget.org/v3-flatcontainer/python/3.12.10/python.3.12.10.nupkg' -OutFile $archivePath
+    }
     if ((Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash -ne '0eb85c2dfccccf1b17352de4c397f69194035b7d37149eacc16f1147d93de3b8') { throw 'Private Python SHA256 mismatch.' }
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $archive = [IO.Compression.ZipFile]::OpenRead($archivePath)
@@ -94,10 +101,6 @@ try {
     if (-not [Environment]::Is64BitOperatingSystem) { throw 'The local runtime requires 64-bit Windows 10/11.' }
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
     $vcsRuntimeRoot = $(if ($RuntimeHome) { [IO.Path]::GetFullPath($RuntimeHome) } elseif ($env:VIDEO_COPY_STUDIO_HOME) { [IO.Path]::GetFullPath($env:VIDEO_COPY_STUDIO_HOME) } else { Join-Path $env:LOCALAPPDATA 'VideoCopyStudio' })
-    $vcsPrivatePython = Join-Path $vcsRuntimeRoot 'python-3.12.10/tools/python.exe'
-    $vcsPreferredPython = $(if ($Python) { $Python } elseif (Test-Path -LiteralPath $vcsPrivatePython) { $vcsPrivatePython } else { '' })
-    $vcsPython = Find-VcsPython $vcsPreferredPython
-    if (-not $vcsPython) { $vcsPython = Install-VcsPython $vcsRuntimeRoot }
     $vcsTargets = @(Get-VcsTargets $Agent $SkillsDir)
     $vcsRepo = 'ASK-022/video-copy-studio-skill'
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
@@ -147,6 +150,10 @@ try {
     if ($PackagePath) { $vcsRelease = [PSCustomObject]@{ tag_name = ('v' + $vcsPackageVersion) } }
     if ($vcsRelease.tag_name -ne ('v' + $vcsPackageVersion)) { throw 'Release tag and package version do not match.' }
     if ($ReleaseTag -and $ReleaseTag -ne $vcsRelease.tag_name) { throw 'Package version does not match the requested release.' }
+    $vcsPrivatePython = Join-Path $vcsRuntimeRoot 'python-3.12.10/tools/python.exe'
+    $vcsPreferredPython = $(if ($Python) { $Python } elseif (Test-Path -LiteralPath $vcsPrivatePython) { $vcsPrivatePython } else { '' })
+    $vcsPython = Find-VcsPython $vcsPreferredPython
+    if (-not $vcsPython) { $vcsPython = Install-VcsPython $vcsRuntimeRoot (Join-Path $vcsSource 'assets/bootstrap/python-3.12.10.nupkg') }
     Write-Host '[2/4] Installing the Skill into detected Agent directories...'
     $vcsInstalled = @()
     foreach ($target in $vcsTargets) {
@@ -172,11 +179,12 @@ try {
             $saved = Get-Content -LiteralPath (Join-Path $vcsRuntimeRoot 'runtime.json') -Raw -Encoding UTF8 | ConvertFrom-Json
             & $vcsPython (Join-Path $vcsPrimary 'scripts/bootstrap.py') @runtimeArguments --register-existing --prepare-models --asr-root $saved.asr_root --python $saved.python --ffmpeg $saved.ffmpeg --port $saved.port
         } else {
-            & $vcsPython (Join-Path $vcsPrimary 'scripts/bootstrap.py') @runtimeArguments --install --download-ffmpeg
+            & $vcsPython (Join-Path $vcsPrimary 'scripts/bootstrap.py') @runtimeArguments --install --download-ffmpeg --port $Port
         }
         if ($LASTEXITCODE -ne 0) { throw 'Runtime or model preparation failed. See bootstrap.log / models.log. Installation is incomplete; fix the error and rerun.' }
         if ($doctor.data.service.ok) { Write-Warning 'An existing studio service was left running. Close it normally, then reopen the Desktop shortcut to use the updated code and browser path.' }
         $saved = Get-Content -LiteralPath (Join-Path $vcsRuntimeRoot 'runtime.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+        if (-not $NoShortcuts) {
         $vcsShell = New-Object -ComObject WScript.Shell
         foreach ($folder in @([Environment]::GetFolderPath('Desktop'),[Environment]::GetFolderPath('Programs'))) {
             if ($folder -and (Test-Path -LiteralPath $folder)) {
@@ -189,6 +197,7 @@ try {
                     $shortcut.Save()
                 } catch { Write-Warning 'Desktop shortcut unavailable; use the launcher in RuntimeHome.' }
             }
+        }
         }
         Write-Host '[4/4] Starting/verifying the local client...'
         $startArguments = @('start')

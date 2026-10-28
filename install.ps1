@@ -4,6 +4,8 @@ param(
     [string]$SkillsDir = '',
     [string]$Python = '',
     [string]$RuntimeHome = '',
+    [ValidatePattern('^v[0-9]+\.[0-9]+\.[0-9]+$')][string]$ReleaseTag,
+    [string]$PackagePath = '',
     [switch]$SkillOnly,
     [switch]$NoOpen
 )
@@ -99,8 +101,11 @@ try {
     $vcsTargets = @(Get-VcsTargets $Agent $SkillsDir)
     $vcsRepo = 'ASK-022/video-copy-studio-skill'
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-    Write-Host '[1/4] Downloading the latest verified Skill release...'
-    $vcsRelease = Invoke-RestMethod -Uri ('https://api.github.com/repos/' + $vcsRepo + '/releases/latest') -Headers @{ 'User-Agent' = 'video-copy-studio-setup'; Accept = 'application/vnd.github+json' }
+    Write-Host '[1/4] Preparing the verified Skill release...'
+    if (-not $PackagePath) {
+    $vcsReleaseEndpoint = $(if ($ReleaseTag) { '/releases/tags/' + $ReleaseTag } else { '/releases/latest' })
+    $vcsRelease = Invoke-RestMethod -Uri ('https://api.github.com/repos/' + $vcsRepo + $vcsReleaseEndpoint) -Headers @{ 'User-Agent' = 'video-copy-studio-setup'; Accept = 'application/vnd.github+json' }
+    if ($vcsRelease.draft -or $vcsRelease.prerelease -or $vcsRelease.tag_name -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') { throw 'Expected a stable release.' }
     $vcsAsset = @($vcsRelease.assets | Where-Object { $_.name -match '^video-copy-studio-v[0-9]+\.[0-9]+\.[0-9]+\.zip$' })
     if ($vcsAsset.Count -ne 1) { throw 'The release does not contain exactly one Skill ZIP.' }
     $vcsAsset = $vcsAsset[0]
@@ -109,12 +114,19 @@ try {
     foreach ($item in @($vcsAsset, $vcsChecksumAsset[0])) {
         if (-not $item.browser_download_url.StartsWith('https://github.com/' + $vcsRepo + '/releases/download/')) { throw 'Unexpected release download address.' }
     }
+    }
     $vcsTempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
     $vcsTemp = Join-Path $vcsTempRoot ('video-copy-studio-setup-' + [Guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $vcsTemp | Out-Null
     $vcsZip = Join-Path $vcsTemp 'skill.zip'
-    Invoke-WebRequest -UseBasicParsing -Uri $vcsAsset.browser_download_url -OutFile $vcsZip
-    $vcsChecksumText = [string](Invoke-RestMethod -Uri $vcsChecksumAsset[0].browser_download_url)
+    if ($PackagePath) {
+        $vcsLocalPackage = [IO.Path]::GetFullPath($PackagePath)
+        Copy-Item -LiteralPath $vcsLocalPackage -Destination $vcsZip
+        $vcsChecksumText = Get-Content -LiteralPath ($vcsLocalPackage + '.sha256') -Raw
+    } else {
+        Invoke-WebRequest -UseBasicParsing -Uri $vcsAsset.browser_download_url -OutFile $vcsZip
+        $vcsChecksumText = [string](Invoke-RestMethod -Uri $vcsChecksumAsset[0].browser_download_url)
+    }
     $vcsExpected = [regex]::Match($vcsChecksumText.Trim(), '^[a-fA-F0-9]{64}').Value
     if (-not $vcsExpected -or (Get-FileHash -LiteralPath $vcsZip -Algorithm SHA256).Hash -ne $vcsExpected) { throw 'SHA256 mismatch. Nothing was installed.' }
     $vcsUnpack = Join-Path $vcsTemp 'unpacked'
@@ -130,6 +142,11 @@ try {
     Expand-Archive -LiteralPath $vcsZip -DestinationPath $vcsUnpack
     $vcsSource = Join-Path $vcsUnpack 'video-copy-studio'
     if (-not (Test-Path -LiteralPath (Join-Path $vcsSource 'SKILL.md'))) { throw 'The Skill entrypoint is missing.' }
+    $vcsPackageVersion = (Get-Content -LiteralPath (Join-Path $vcsSource 'VERSION') -Raw).Trim()
+    if ($vcsPackageVersion -notmatch '^[0-9]+\.[0-9]+\.[0-9]+$') { throw 'Invalid package version.' }
+    if ($PackagePath) { $vcsRelease = [PSCustomObject]@{ tag_name = ('v' + $vcsPackageVersion) } }
+    if ($vcsRelease.tag_name -ne ('v' + $vcsPackageVersion)) { throw 'Release tag and package version do not match.' }
+    if ($ReleaseTag -and $ReleaseTag -ne $vcsRelease.tag_name) { throw 'Package version does not match the requested release.' }
     Write-Host '[2/4] Installing the Skill into detected Agent directories...'
     $vcsInstalled = @()
     foreach ($target in $vcsTargets) {
@@ -182,6 +199,10 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Final readiness check failed.' }
         $verification = ($verificationText -join "`n") | ConvertFrom-Json
         if (-not ($verification.data.dependencies_ready -and $verification.data.browser_ready -and $verification.data.models_ready -and $verification.data.service.ok -and $verification.data.service.asr_ready)) { throw 'Final readiness check failed: dependencies, browser, models or service are not ready. See bootstrap.log / models.log / server.log.' }
+        $vcsReceiptPath = Join-Path $vcsRuntimeRoot 'installation.json'
+        $vcsReceipt = @{ version = $vcsPackageVersion; skill_path = $vcsPrimary; repository = $vcsRepo; runtime_home = $vcsRuntimeRoot }
+        $vcsReceipt | ConvertTo-Json | Set-Content -LiteralPath ($vcsReceiptPath + '.tmp') -Encoding UTF8
+        Move-Item -LiteralPath ($vcsReceiptPath + '.tmp') -Destination $vcsReceiptPath -Force
         Write-Host ('Web: ' + $verification.data.service_url + '/')
         Write-Host ('Reopen: double-click Video Copy Studio on Desktop, or ' + (Join-Path $vcsRuntimeRoot '打开文案工坊.cmd'))
     } else { Write-Host '[3/4] Runtime setup skipped (-SkillOnly).'; Write-Host '[4/4] Skill installation complete.' }

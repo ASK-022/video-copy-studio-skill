@@ -318,3 +318,15 @@ $('clear-key').onclick=async()=>{const p=providerCatalog.find(p=>p.id===editingP
 $('provider-remove').onclick=async()=>{if(!editingProviderId)return;try{await api('/providers/'+editingProviderId,{method:'DELETE'});editingProviderId=null;$('ai-config-panel').hidden=true;$('api-key').value='';await refreshSettings();toast('已移除该服务商配置。');}catch(e){settingsMessage(e.message,true);}};
 async function poll(){try{if(currentId&&busy(current)){const id=currentId;const item=await api('/jobs/'+id);if(id===currentId){const wasBusy=busy(current);render(item);if(wasBusy&&!busy(item)){await refreshHistory();toast(item.status==='done'?'处理完成。':item.error);}}}}catch(e){toast(e.message);}finally{setTimeout(poll,1800);}}
 (async()=>{try{let initialSpace='video';try{initialSpace=localStorage.getItem('vcs-creative-space')||'video';}catch(_){}applyCreativeSpace(initialSpace);const [,prefs]=await Promise.all([refreshSettings(),api('/preferences')]);referenceDrafts.setDefault(prefs.default_link_provider);$('link-provider').value=prefs.default_link_provider;const jobs=await refreshHistory();if(jobs.length)await selectJob(jobs[0].id);else restoreImportDraft(null);}catch(e){toast(e.message);}poll();})();
+
+// Manual, read-only release check; updates are applied by the Windows manager.
+$('updates-check').onclick=async()=>{
+  const button=$('updates-check'),status=$('updates-status');button.disabled=true;status.textContent='正在检查正式版…';
+  try{
+    const result=await api('/updates');
+    status.textContent=`本机 v${result.current} · 正式版 v${result.latest}。`+(result.update_available?'发现新版。打开安装管理器点击“安装 / 更新”，或查看发布页下载新版。':'当前已是最新版本。');
+    if(result.update_available){
+      const link=document.createElement('a');link.href=result.release_url;link.target='_blank';link.rel='noreferrer';link.textContent=' 查看新版与下载';status.append(link);
+    }
+  }catch(error){status.textContent=error.message;}finally{button.disabled=false;}
+};

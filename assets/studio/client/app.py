@@ -28,6 +28,7 @@ from client.draft_exports import DraftTextExport, export_narrations
 from client.feishu import FeishuSettings, FeishuStore
 from client import manuscripts,products,planning
 from client import product_imports,document_imports
+from client.updates import check_update,local_version
 
 ROOT = Path(__file__).resolve().parents[1]
 STATE = Path(os.environ.get('COPY_STUDIO_DATA', str(ROOT/'.studio'))).resolve()
@@ -341,6 +342,12 @@ def index():
 def health():
     with LOCK:active=sum(r['status'] in ('queued','working') for r in MATERIAL_IMPORTS.values())
     return {'ok':True,'asr_ready':PYTHON.exists(),'ai_configured':bool(load_config().get('encrypted_key')),'product_imports_active':active}
+
+
+@app.get('/api/updates')
+def updates():
+    try:return check_update(local_version())
+    except ValueError as exc:raise HTTPException(503,str(exc)) from exc
 
 
 @app.get('/api/settings')

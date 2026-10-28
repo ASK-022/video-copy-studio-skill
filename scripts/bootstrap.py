@@ -12,6 +12,7 @@ import urllib.request
 import zipfile
 from prepare_models import model_status
 from browser_setup import prepare_browser
+from extra_setup import prepare_extras
 
 SKILL=Path(__file__).resolve().parents[1]
 UPSTREAM='https://codeload.github.com/Acclerate/video-transcriber/zip/bfce75fb1d9cf3e8444d531a4f96ec49faa467cf'
@@ -144,8 +145,7 @@ def main():
         commands=[[str(python),'-m','pip','install','--upgrade','pip>=25.2,<27'],
                   [str(python),'-m','pip','install','torch==2.6.0','torchaudio==2.6.0','--index-url','https://pypi.org/simple'],
                   [str(python),'-c','import torch,torchaudio; assert torch.version.cuda is None, "Expected the Windows CPU build"'],
-                  [str(python),'-m','pip','install','-r',str(asr/'requirements.txt'),'-c',str(constraints)],
-                  [str(python),'-m','pip','install','-r',str(SKILL/'assets/requirements-extra.txt'),'-c',str(constraints)]]
+                  [str(python),'-m','pip','install','-r',str(asr/'requirements.txt'),'-c',str(constraints)]]
         with log.open('a',encoding='utf-8') as output:
             for command in commands:
                 print('正在安装依赖，日志：'+str(log),file=sys.stderr,flush=True)
@@ -153,6 +153,7 @@ def main():
                 if result.returncode:raise RuntimeError('依赖安装失败，查看 bootstrap.log；修复网络后可重跑安装，现有数据保留。')
     browser_path=previous.get('browser_path')
     if args.install or args.prepare_models:
+        prepare_extras(root,python)
         browser_path=prepare_browser(root,python,browser_path)
     if not python.is_file() or not (asr/'webmain.py').exists():raise RuntimeError('转写程序或 Python 路径无效。')
     if args.install or args.prepare_models:

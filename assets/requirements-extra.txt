@@ -2,6 +2,8 @@
 rapidocr-onnxruntime==1.4.4
 scenedetect==0.7.1
 rapidfuzz>=3.14,<4
+pypdfium2>=4.30,<6
+packaging>=23,<27
 openpyxl==3.1.5
 yt-dlp
 playwright>=1.50,<2

@@ -62,8 +62,9 @@ $('table-dialog').addEventListener('cancel',e=>{if(tableBusy)e.preventDefault();
 $('table-configure').onclick=async()=>{$('table-dialog').close();await openSettings('feishu');};
 $('narration-table').onclick=async()=>{
   const data=activeNarrations();if(!data)return;
+  try{if(typeof flushNarrations==='function')await flushNarrations(data);}catch(e){toast(e.message);return;}
   const epoch=++tableEpoch;
-  tableSnapshot={jobId:data.job.id,title:data.job.title,batchId:data.batch.id,job:{id:data.job.id,title:data.job.title},batch:{id:data.batch.id,mode:data.batch.mode},items:data.rows.flatMap((r,index)=>r.selected?[{index,text:r.text}]:[])};
+  tableSnapshot={jobId:data.job.id,title:data.job.title,batchId:data.batch.id,job:{id:data.job.id,title:data.job.title},batch:{id:data.batch.id,mode:data.batch.mode},items:data.rows.flatMap((r,index)=>r.selected?[{index,text:r.text,revision:r.revision}]:[])};
   tableMeta=tableExportPrefs.load(data.job,data.batch);
   if(!tableMeta.shotsEdited)tableMeta.shot_requirements=tableExportPrefs.suggestions(data.batch,tableSnapshot.items.map(r=>r.index));
   $('table-template').value=tableMeta.template;

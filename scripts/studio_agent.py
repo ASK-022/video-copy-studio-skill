@@ -17,6 +17,7 @@ import webbrowser
 from bootstrap import SKILL,home
 from prepare_models import model_status
 from browser_setup import browser_status,repair_browser
+from extra_setup import extra_status
 
 
 def settings(root):
@@ -46,10 +47,11 @@ class Studio:
             raise ValueError(str(message)[:1000]) from exc
         return raw if binary else json.loads(raw)
 
-    def upload(self,path,facts,auto_ai):
+    def upload(self,path,facts,auto_ai,script=False):
         path=Path(path).expanduser().resolve()
         if not path.is_file():raise ValueError('输入媒体文件不存在。')
-        if path.stat().st_size>500*1024*1024:raise ValueError('输入媒体超过 500 MB。')
+        if path.stat().st_size>(20 if script else 500)*1024*1024:raise ValueError('输入文件超过允许的大小。')
+        if script and path.suffix.lower() not in ('.docx','.pdf','.txt'):raise ValueError('脚本文档支持 DOCX、PDF、TXT。')
         boundary='Studio'+uuid.uuid4().hex
         fields=''.join(f'--{boundary}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n' for k,v in [('facts',facts),('auto_ai','true' if auto_ai else 'false')])
         filename=path.name.replace('"','_').replace('\r','').replace('\n','')
@@ -57,7 +59,7 @@ class Studio:
         suffix=f'\r\n--{boundary}--\r\n'.encode()
         connection=http.client.HTTPConnection(self.parsed.hostname,self.parsed.port or 80,timeout=240)
         try:
-            connection.putrequest('POST','/api/jobs/upload')
+            connection.putrequest('POST','/api/jobs/script/upload' if script else '/api/jobs/upload')
             for key,value in {'Content-Type':f'multipart/form-data; boundary={boundary}','Content-Length':str(len(prefix)+path.stat().st_size+len(suffix)),
                  'Cookie':'; '.join(c.name+'='+c.value for c in self.cookies),'X-Studio-Request':'1'}.items():connection.putheader(key,value)
             connection.endheaders();connection.send(prefix)
@@ -65,6 +67,38 @@ class Studio:
                 while chunk:=source.read(1024*1024):connection.send(chunk)
             connection.send(suffix);response=connection.getresponse();body=json.loads(response.read())
             if response.status>=400:raise ValueError(str(body.get('detail','导入失败。')))
+            return body
+        finally:connection.close()
+
+
+    def upload_materials(self,job_id,paths,mode,document=False):
+        if not isinstance(paths,list) or not 1<=len(paths)<=5:raise ValueError('images 需要 1–5 个本机图片路径。')
+        files=[Path(p).expanduser().resolve() for p in paths]
+        if document and (len(files)!=1 or files[0].suffix.lower() not in ('.docx','.pdf','.txt')):raise ValueError('请选择一份 DOCX、PDF 或 TXT 文档。')
+        if any(not p.is_file() or p.stat().st_size>(20 if document else 12)*1024*1024 for p in files) or sum(p.stat().st_size for p in files)>(20 if document else 30)*1024*1024:
+            raise ValueError('图片文件必须存在，单张不超过 12 MB，合计不超过 30 MB。')
+        boundary='Product'+uuid.uuid4().hex
+        prefix=f'--{boundary}\r\nContent-Disposition: form-data; name="mode"\r\n\r\n{mode}\r\n'.encode()
+        parts=[]
+        for path in files:
+            name=path.name.replace('"','_').replace('\r','').replace('\n','')
+            field='file' if document else 'files'
+            header=f'--{boundary}\r\nContent-Disposition: form-data; name="{field}"; filename="{name}"\r\nContent-Type: application/octet-stream\r\n\r\n'.encode('utf-8')
+            parts.append((header,path))
+        suffix=f'--{boundary}--\r\n'.encode();size=len(prefix)+sum(len(header)+path.stat().st_size+2 for header,path in parts)+len(suffix)
+        connection=http.client.HTTPConnection(self.parsed.hostname,self.parsed.port or 80,timeout=100)
+        try:
+            connection.putrequest('POST','/api/jobs/'+urllib.parse.quote(job_id,safe='')+'/product-imports/'+('document' if document else 'images'))
+            for k,v in {'Content-Type':f'multipart/form-data; boundary={boundary}','Content-Length':str(size),
+                        'Cookie':'; '.join(c.name+'='+c.value for c in self.cookies),'X-Studio-Request':'1'}.items():connection.putheader(k,v)
+            connection.endheaders();connection.send(prefix)
+            for header,path in parts:
+                connection.send(header)
+                with path.open('rb') as source:
+                    while chunk:=source.read(256*1024):connection.send(chunk)
+                connection.send(b'\r\n')
+            connection.send(suffix);response=connection.getresponse();body=json.loads(response.read())
+            if response.status>=400:raise ValueError(str(body.get('detail','商品图片导入失败。')))
             return body
         finally:connection.close()
 
@@ -86,7 +120,12 @@ def selected_batch(job,params):
         raise ValueError('indices 必须是不重复的有效脚本序号，从 1 开始。')
     if not indices:raise ValueError('没有可导出的文案。')
     edits=params.get('edits',{})
-    items=[{'index':i-1,'text':edits.get(str(i),'\n\n'.join(s['text'] for s in batch['variants'][i-1]['segments']))} for i in sorted(indices)]
+    items=[]
+    for i in sorted(indices):
+        variant=batch['variants'][i-1];saved=variant.get('manuscript')
+        row={'index':i-1,'text':edits.get(str(i),saved['text'] if saved else '\n\n'.join(s['text'] for s in variant['segments']))}
+        if saved and str(i) not in edits:row['revision']=saved['revision']
+        items.append(row)
     return batch,items
 
 
@@ -97,20 +136,59 @@ def invoke(client,params):
     if action=='health':return client.request('/health')
     if action=='list':return client.request('/jobs')
     if action=='providers':return client.request('/providers')
+    if action=='products':return client.request('/products')
+    if action=='product-get':return client.request('/products/'+urllib.parse.quote(params['product_id'],safe=''))
+    if action=='product-save':
+        body=params['product']
+        if body.get('confirmed') is not True:raise ValueError('请明确核对商品资料，再设置 product.confirmed=true；待确认信息不用于生成。')
+        return client.request('/products'+('/'+urllib.parse.quote(params['product_id'],safe='') if params.get('product_id') else ''),'PUT' if params.get('product_id') else 'POST',body)
+    if action=='plan':return client.request('/drafts/plan','POST',{k:params[k] for k in ('count','focus','offset','limit') if k in params})
     if action=='import':
         if bool(params.get('file'))==bool(params.get('url')):raise ValueError('file 与 url 必须且只能提供一个。')
         if params.get('file'):return client.upload(params['file'],params.get('facts',''),params.get('auto_ai',False))
         return client.request('/jobs/link','POST',{'url':params['url'],'facts':params.get('facts',''),'auto_ai':params.get('auto_ai',False),'provider':params.get('provider','local')})
+    if action=='import-script':
+        if bool(params.get('text'))==bool(params.get('file')):raise ValueError('text 与 file 必须且只能提供一个。')
+        if params.get('file'):return client.upload(params['file'],params.get('facts',''),params.get('auto_ai',True),script=True)
+        return client.request('/jobs/script','POST',{k:params[k] for k in ('text','title','facts','auto_ai') if k in params})
     if not job_id:raise ValueError('此操作需要 job_id。')
     job=client.request('/jobs/'+urllib.parse.quote(job_id,safe=''))
     if action=='get':return job
+    if action=='extract-material':
+        mode=params.get('mode','switch')
+        if mode not in ('same','switch'):raise ValueError('商品提取 mode 仅支持 same/switch。')
+        if sum(bool(params.get(k)) for k in ('text','images','document'))!=1:raise ValueError('text、images、document 必须且只能提供一个。')
+        if params.get('document'):return client.upload_materials(job_id,[params['document']],mode,document=True)
+        if params.get('images'):return client.upload_materials(job_id,params['images'],mode)
+        return client.request(f'/jobs/{job_id}/product-imports/text','POST',{'mode':mode,'text':params['text']})
+    if action in ('material-status','apply-material'):
+        source_id=urllib.parse.quote(params['import_id'],safe='')
+        record=client.request(f'/jobs/{job_id}/product-imports/{source_id}')
+        if action=='material-status':return record
+        if record['status']!='done':raise ValueError('商品资料尚未提取完成。')
+        if not params.get('text','').strip():raise ValueError('应用时需要提供核对后的商品资料 text。')
+        return client.request(f'/jobs/{job_id}/product-material','PUT',{'mode':record['mode'],'source_id':record['id'],'text':params['text']})
+    if action in ('manuscript','save-manuscript','restore-manuscript','rewrite'):
+        batches=job.get('batches',[]);batch=next((b for b in batches if b['id']==params.get('batch_id')),None) if params.get('batch_id','latest')!='latest' else (batches[-1] if batches else None)
+        index=params.get('script_index',1)
+        if not batch or type(index)!=int or not 1<=index<=len(batch['variants']):raise ValueError('请指定有效批次和从 1 开始的 script_index。')
+        path=f'/jobs/{job_id}/drafts/{urllib.parse.quote(batch["id"],safe="")}/{index-1}'
+        if action=='manuscript':return client.request(path+'/versions'+('/'+str(params['revision']) if 'revision' in params else ''))
+        if type(params.get('base_revision'))!=int or params['base_revision']<0:raise ValueError('修改、恢复或重写需要 base_revision，请先读取当前成稿。')
+        keys={'save-manuscript':('base_revision','text','segments'),'restore-manuscript':('base_revision','revision'),'rewrite':('base_revision','direction')}[action]
+        suffix={'save-manuscript':'/manuscript','restore-manuscript':'/restore','rewrite':'/rewrite'}[action]
+        return client.request(path+suffix,'PUT' if action=='save-manuscript' else 'POST',{k:params[k] for k in keys if k in params})
     if action=='stop':return client.request(f'/jobs/{job_id}/drafts/stop','POST')
     if action in ('correct','analyze','extract-product'):
         return client.request(f'/jobs/{job_id}/{action}','POST',{'text':params.get('text',job['corrected']),'facts':params.get('facts',job.get('facts',''))})
     if action=='generate':
         facts=params.get('facts',job.get('product_facts',''))
-        if params.get('mode','same')=='switch' and not params.get('facts'):raise ValueError('换商品模式需要明确提供目标商品 facts。')
-        data={k:params[k] for k in ('direction','quality_check','target_duration','audience','purpose') if k in params}
+        if params.get('mode','same')=='switch' and not (params.get('facts') or params.get('product_id')):raise ValueError('换商品模式需要明确提供目标商品 facts 或 product_id。')
+        data={k:params[k] for k in ('direction','quality_check','target_duration','audience','purpose','focus','product_id','product_version') if k in params}
+        if params.get('product_id') and 'facts' not in params:
+            product=client.request('/products/'+urllib.parse.quote(params['product_id'],safe=''))
+            facts='商品：'+product['name']+'\n已确认卖点：\n'+product['facts']+('\n专有名词：'+product['aliases'] if product.get('aliases') else '')
+            data.setdefault('product_version',product['version'])
         return client.request(f'/jobs/{job_id}/drafts/generate','POST',dict(data,mode=params.get('mode','same'),count=params.get('count',3),facts=facts,reference_text=job['corrected']))
     if action=='report':
         return client.request(f'/jobs/{job_id}/reports/run','POST',{'scene':params.get('scene','transcript'),'visual_mode':params.get('visual_mode','local'),
@@ -157,6 +235,7 @@ def main():
         return {'skill_version':(SKILL/'VERSION').read_text().strip(),'windows_runtime_supported':os.name=='nt','runtime_registered':bool(config),
                 'service_url':url,'service':service,'models_ready':model_status(root/'models-ready.json',config.get('model_cache')),
                 'browser_ready':browser_status(config.get('python'),config.get('browser_path')),
+                'dependencies_ready':extra_status(config.get('python')),
                 'launcher':str(root/'打开文案工坊.cmd'),'model_weights_in_zip':False,'credentials_in_zip':False}
     if args.command=='start':
         config=settings(root)

@@ -69,7 +69,7 @@ function renderMarkerUI(job){
     $('transcript-editor').open=!job.reports?.transcript;const player=$('reference-player');player.pause();player.removeAttribute('src');player.load();$('marker-preview').open=false;
     syncDrawerAccess();
   }
-  $('job-metadata').textContent=[job.kind==='link'?'链接参考':'本地参考',job.duration?markerClock(job.duration):'',job.structure?.length?job.structure.length+' 段原结构':''].filter(Boolean).join(' · ');
+  $('job-metadata').textContent=[job.kind==='script'?'脚本原文':job.kind==='link'?'链接参考':'本地参考',job.duration?markerClock(job.duration):'',job.structure?.length?job.structure.length+' 段原结构':''].filter(Boolean).join(' · ');
   $('markers-run').disabled=working||!job.input_file;$('markers-run').innerHTML=(detecting?'正在本机检测…':result?'重新检测':'开始本机检测')+' <span>↗</span>';
   $('marker-progress').textContent=detecting?job.message:result?'已完成 · '+new Date(result.created*1000).toLocaleString('zh-CN')+' · 仅做标记':'三项检测均在本机完成，无需 AI 额度。';
   const warnings=[...(result?.warnings||[]),...(job.marker_warning?[job.marker_warning]:[])];$('marker-warning').hidden=!warnings.length;$('marker-warning').textContent=warnings.join('\n');

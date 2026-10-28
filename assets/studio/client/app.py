@@ -26,6 +26,8 @@ from client import evidence as ev
 from client import reports as reports_engine
 from client.draft_exports import DraftTextExport, export_narrations
 from client.feishu import FeishuSettings, FeishuStore
+from client import manuscripts,products,planning
+from client import product_imports,document_imports
 
 ROOT = Path(__file__).resolve().parents[1]
 STATE = Path(os.environ.get('COPY_STUDIO_DATA', str(ROOT/'.studio'))).resolve()
@@ -39,12 +41,14 @@ SESSION = secrets.token_urlsafe(32)
 LOCK = threading.RLock()
 ASR_POOL = ThreadPoolExecutor(max_workers=1)
 AI_POOL = ThreadPoolExecutor(max_workers=2)
+PRODUCT_POOL = ThreadPoolExecutor(max_workers=1)
 JOBS = {}
 CANCEL_EVENTS = {}
 AUDIO_PREVIEW_LOCKS = {}
 MAX_TEXT = 20000
 PROVIDERS = ProviderStore(STATE)
 FEISHU = FeishuStore(STATE)
+MATERIAL_IMPORTS={}
 
 
 def atomic_json(path, data):
@@ -62,6 +66,15 @@ for path in STATE.glob('jobs/*/job.json'):
         JOBS[item['id']] = item
     except (ValueError, KeyError):
         pass
+
+for path in STATE.glob('jobs/*/product-imports/*/result.json'):
+    try:
+        item=json.loads(path.read_text(encoding='utf-8'))
+        if item['status'] in ('queued','working'):
+            item.update(status='error',message='上次提取因客户端退出而中断，请重新提取。',error='提取已中断。')
+            atomic_json(path,item)
+        MATERIAL_IMPORTS[item['id']]=item
+    except (ValueError,KeyError):pass
 
 
 def directory(job_id):
@@ -137,7 +150,7 @@ def correction_pipeline(job_id, client, text, facts):
            uncertainties=result['uncertainties'],structure=[],product_profile=None,
            product_facts='',product_source_text='',product_warning='')
     update(job_id,message='正在识别参考文案结构…')
-    structure = client.analyze(result['text'])
+    structure = client.analyze_script(result['text']) if get_job(job_id)['kind']=='script' else client.analyze(result['text'])
     update(job_id,structure=structure)
     extract_product(job_id,client,result['text'],facts)
 
@@ -169,6 +182,8 @@ def generate_in_batches(job_id, data, client):
     batch={'id':uuid.uuid4().hex,'mode':data['mode'],'created':time.time(),
            'facts':data['facts'],'direction':data['direction'],'reference':snapshot['structure'],
            'variants':[],'review_notes':[],'requested_count':data['count'],'complete':False}
+    focus=planning.Focus.model_validate(data.get('focus',{}))
+    batch.update(focus=focus.model_dump(),product_snapshot=data.get('product_snapshot'),quality_check=data.get('quality_check',False))
     if isinstance(getattr(client,'provider_id',None),str):
         batch['ai_provider']={'id':client.provider_id,'name':client.provider_name,'model':client.model}
     try:
@@ -178,17 +193,21 @@ def generate_in_batches(job_id, data, client):
             update(job_id,message=f"正在生成第 {completed+1}–{completed+count} 条，共 {data['count']} 条…",
                    generation_progress={'completed':completed,'total':data['count']})
             direction=data['direction']+f'\n本轮生成第 {completed+1}–{completed+count} 条，使用不同的口语表达。'
+            directions=[planning.direction(focus,i) for i in range(completed+1,completed+count+1)]
+            if focus.enabled:direction+='\n逐条方向（严格按以下顺序输出，不改变原结构）：\n'+'\n'.join(f'第 {completed+i+1} 条：{v}' for i,v in enumerate(directions))
             if batch['variants']:
                 direction+='避免重复此前版本的标题和切入角度：'+'；'.join(x['title'] for x in batch['variants'][-6:])
             generated=client.generate(snapshot['structure'],'same' if data['mode']=='original' else data['mode'],data['facts'],count,direction)
-            for variant in generated['variants']:
+            for offset,variant in enumerate(generated['variants']):
+                manuscripts.aligned(snapshot['structure'],variant['segments'])
                 if data.get('quality_check',False):
                     update(job_id,message=f"正在质检第 {len(batch['variants'])+1} 条脚本，低分项将改写一轮…")
                     try:
-                        variant=reports_engine.enrich_variant(client,variant,snapshot['structure'],'same' if data['mode']=='original' else data['mode'],data['facts'],direction,snapshot.get('duration',60))
+                        variant=reports_engine.enrich_variant(client,variant,snapshot['structure'],'same' if data['mode']=='original' else data['mode'],data['facts'],data['direction']+'\n本条方向：'+directions[offset],snapshot.get('duration',60))
                     except (ValueError,RuntimeError):
                         variant['quality_error']='文案已生成，六维质检未完成；可保留成稿，稍后重新生成或人工检查。'
                         batch['review_notes']=list(dict.fromkeys(batch['review_notes']+[variant['quality_error']]))
+                variant['generation_focus']=directions[offset]
                 batch['variants'].append(variant)
                 update(job_id,batches=snapshot['batches']+[copy.deepcopy(batch)],
                        generation_progress={'completed':len(batch['variants']),'total':data['count']})
@@ -272,7 +291,7 @@ def ai_work(job_id, operation, data, client):
             correction_pipeline(job_id,client,data['text'],data['facts'])
         elif operation=='analyze':
             update(job_id,message='正在按原文识别结构…')
-            structure = client.analyze(data['text'])
+            structure = client.analyze_script(data['text']) if item['kind']=='script' else client.analyze(data['text'])
             update(job_id,structure=structure)
             extract_product(job_id,client,data['text'],data['facts'])
         elif operation=='extract-product':
@@ -305,7 +324,7 @@ async def local_only(request:Request, call_next):
     response = await call_next(request)
     response.headers['X-Content-Type-Options']='nosniff'
     response.headers['Referrer-Policy']='no-referrer'
-    response.headers['Content-Security-Policy']="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'"
+    response.headers['Content-Security-Policy']="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'"
     if request.url.path.startswith('/api/'):
         response.headers['Cache-Control']='no-store'
     return response
@@ -320,7 +339,8 @@ def index():
 
 @app.get('/api/health')
 def health():
-    return {'ok':True,'asr_ready':PYTHON.exists(),'ai_configured':bool(load_config().get('encrypted_key'))}
+    with LOCK:active=sum(r['status'] in ('queued','working') for r in MATERIAL_IMPORTS.values())
+    return {'ok':True,'asr_ready':PYTHON.exists(),'ai_configured':bool(load_config().get('encrypted_key')),'product_imports_active':active}
 
 
 @app.get('/api/settings')
@@ -405,7 +425,7 @@ def list_jobs(trash:bool=False):
     with LOCK:
         items=[x for x in JOBS.values() if bool(x.get('deleted_at'))==trash]
         items.sort(key=lambda x:(not bool(x.get('pinned')), -float(x.get('pinned_at') or x['created']) if x.get('pinned') else -x['created']))
-        return [{k:x.get(k) for k in ('id','title','status','created','message','pinned','pinned_at','deleted_at')} for x in items]
+        return [{k:x.get(k) for k in ('id','kind','title','status','created','message','pinned','pinned_at','deleted_at')} for x in items]
 
 
 class TikHubSettings(BaseModel):
@@ -500,7 +520,7 @@ def job(job_id:str):
     with LOCK:
         item=get_job(job_id)
         if item.get('deleted_at'):raise HTTPException(404,'该参考已移入回收站。')
-        return copy.deepcopy(item)
+        return manuscripts.attach(directory(job_id),copy.deepcopy(item))
 
 
 class PinInput(BaseModel):
@@ -522,6 +542,8 @@ def pin_job(job_id:str,data:PinInput):
 def trash_job(job_id:str):
     with LOCK:
         ready(job_id)
+        if any(r['job_id']==job_id and r['status'] in ('queued','working') for r in MATERIAL_IMPORTS.values()):
+            raise HTTPException(409,'商品资料正在提取，请完成后再删除参考。')
         update(job_id,deleted_at=time.time(),pinned=False,pinned_at=0)
     return {'deleted':True,'recoverable':True}
 
@@ -565,6 +587,76 @@ async def upload(file:UploadFile=File(...), facts:str=Form(''), auto_ai:bool=For
         await file.close()
 
 
+async def save_document(file,path):
+    size=0
+    try:
+        with path.open('wb') as output:
+            while chunk:=await file.read(1024*1024):
+                size+=len(chunk)
+                if size>document_imports.MAX_BYTES:raise ValueError('文档超过 20 MB，请拆分后上传。')
+                output.write(chunk)
+        if not size:raise ValueError('文档为空，请选择有正文的文件。')
+    except Exception:
+        path.unlink(missing_ok=True)
+        raise
+
+
+def script_work(job_id,client=None):
+    try:
+        item=update(job_id,status='working',operation='script-import',error='',message='正在读取脚本原文…')
+        text=item.get('raw','')
+        if item.get('script_file'):
+            text=document_imports.document_text(directory(job_id)/item['script_file'],lambda note:update(job_id,message=note))
+        text=document_imports.clean_text(text)
+        update(job_id,raw=text,corrected=text,asr_timed=False,structure=[])
+        if client:
+            # Written copy is already the source of truth: analyze without ASR correction.
+            update(job_id,message='正在分析原文结构，保留原句与顺序…')
+            update(job_id,structure=client.analyze_script(text))
+            extract_product(job_id,client,text,item['facts'])
+        update(job_id,status='done',operation='',message='脚本已导入，可保留原结构生成新版本。' if client else '脚本已导入，请点击「按当前文案重拆结构」后生成。')
+    except Exception as exc:fail(job_id,exc)
+
+
+class ScriptInput(BaseModel):
+    text:str=Field(min_length=1,max_length=MAX_TEXT)
+    title:str=Field(default='',max_length=160)
+    facts:str=Field(default='',max_length=5000)
+    auto_ai:bool=True
+
+
+@app.post('/api/jobs/script',status_code=202)
+def import_script(data:ScriptInput):
+    try:
+        text=document_imports.clean_text(data.text)
+        client=ai_client() if data.auto_ai else None
+    except ValueError as exc:raise HTTPException(400,str(exc))
+    item=new_job(data.title.strip() or '脚本 · '+text.splitlines()[0][:32],'script',data.facts)
+    update(item['id'],raw=text,corrected=text,auto_ai=data.auto_ai,operation='script-import',message='准备分析脚本…',asr_timed=False)
+    AI_POOL.submit(script_work,item['id'],client)
+    return {'id':item['id']}
+
+
+@app.post('/api/jobs/script/upload',status_code=202)
+async def upload_script(file:UploadFile=File(...),facts:str=Form(''),auto_ai:bool=Form(True)):
+    item=None
+    try:
+        suffix=Path(file.filename or '').suffix.lower()
+        if suffix not in document_imports.SUFFIXES:raise ValueError('请选择 DOCX、PDF 或 TXT 脚本文档。')
+        if len(facts)>5000:raise ValueError('商品资料请控制在 5000 字以内。')
+        client=ai_client() if auto_ai else None
+        item=new_job(Path(file.filename).name,'script',facts)
+        path=directory(item['id'])/('script'+suffix)
+        await save_document(file,path)
+        update(item['id'],script_file=path.name,auto_ai=auto_ai,asr_timed=False,operation='script-import',message='准备读取脚本文档…')
+        AI_POOL.submit(script_work,item['id'],client)
+        return {'id':item['id']}
+    except ValueError as exc:
+        if item:fail(item['id'],exc)
+        raise HTTPException(400,str(exc))
+    finally:await file.close()
+
+
 class LinkInput(BaseModel):
     url:str=Field(min_length=8,max_length=4000)
     facts:str=Field(default='',max_length=5000)
@@ -597,6 +689,12 @@ def retry(job_id:str,options:RetryOptions|None=None):
         item = ready(job_id)
         if options:
             update(job_id,facts=options.facts,auto_ai=options.auto_ai,link_provider=options.provider)
+        if item['kind']=='script':
+            try:client=ai_client() if get_job(job_id)['auto_ai'] else None
+            except ValueError as exc:raise HTTPException(400,str(exc))
+            update(job_id,status='queued',error='',operation='script-import',message='准备重新读取脚本…')
+            AI_POOL.submit(script_work,job_id,client)
+            return {'id':job_id}
         if item['kind']=='link':
             # Resolved platform assets can expire or contain a video-only track.
             update(job_id,input_file='')
@@ -642,6 +740,9 @@ class GenerateInput(BaseModel):
     target_duration:int=Field(default=60,ge=10,le=1800)
     audience:str=Field(default='',max_length=300)
     purpose:str=Field(default='种草',max_length=100)
+    focus:planning.Focus=Field(default_factory=planning.Focus)
+    product_id:str=Field(default='',max_length=100)
+    product_version:int=Field(default=0,ge=0,strict=True)
 
 
 # Register before the generic /{operation} POST route using a distinct extra path component.
@@ -659,10 +760,21 @@ def generate(job_id:str,data:GenerateInput):
             client=ai_client()
         except ValueError as exc:
             raise HTTPException(400,str(exc))
+        payload=data.model_dump()
+        if data.product_id:
+            try:
+                selected=products.get(STATE,data.product_id)
+                if selected['version']!=data.product_version:raise FileExistsError('商品资料已更新，请重新选择商品后生成。')
+                if data.facts!=products.material(selected):raise ValueError('商品资料已被修改，请重新选择商品，或以手动资料生成。')
+                payload['product_snapshot']={k:v for k,v in selected.items() if k!='history'}
+                if selected.get('forbidden'):payload['direction']+='\n不可使用以下表述（不是商品事实）：'+selected['forbidden']
+            except FileExistsError as exc:raise HTTPException(409,str(exc))
+            except ValueError as exc:raise HTTPException(400,str(exc))
+        if any(int(k)>data.count for k in data.focus.custom):raise HTTPException(400,'自定义方向序号超过生成条数。')
         CANCEL_EVENTS[job_id]=threading.Event()
         update(job_id,status='working',operation='generate',error='',message='准备生成文案…',
                generation_progress={'completed':0,'total':data.count})
-        AI_POOL.submit(ai_work,job_id,'generate',data.model_dump(),client)
+        AI_POOL.submit(ai_work,job_id,'generate',payload,client)
     return {'id':job_id}
 
 
@@ -1019,6 +1131,8 @@ def export(job_id:str):
 @app.get('/api/jobs/{job_id}/drafts/export')
 def export_drafts(job_id:str):
     item=job(job_id)
+    for batch in item['batches']:
+        for variant in batch['variants']:variant.pop('manuscript',None)
     return Response(json.dumps({'title':item['title'],'batches':item['batches']},ensure_ascii=False,indent=2).encode('utf-8-sig'),
       media_type='application/json',headers={'Content-Disposition':f'attachment; filename="scripts-{job_id[:8]}.json"'})
 
@@ -1055,6 +1169,290 @@ def test_feishu():
 def sync_feishu(job_id:str,data:DraftTextExport):
     try:return FEISHU.sync(job(job_id),data)
     except ValueError as exc:raise HTTPException(400,str(exc)) from exc
+
+
+def material_folder(job_id,import_id):
+    return directory(job_id)/'product-imports'/import_id
+
+
+def material_update(import_id,**values):
+    with LOCK:
+        record=MATERIAL_IMPORTS[import_id];record.update(values,updated=time.time())
+        atomic_json(material_folder(record['job_id'],import_id)/'result.json',record)
+        return copy.deepcopy(record)
+
+
+def material_record(job_id,import_id):
+    job(job_id)
+    value=MATERIAL_IMPORTS.get(import_id)
+    if not value or value['job_id']!=job_id:raise HTTPException(404,'这份商品提取记录不存在。')
+    return copy.deepcopy(value)
+
+
+def new_material(job_id,mode,kind,client):
+    if mode not in ('same','switch'):raise HTTPException(400,'请选择同商品或换商品模式。')
+    with LOCK:
+        job(job_id)
+        if any(x['job_id']==job_id and x['mode']==mode and x['status'] in ('queued','working') for x in MATERIAL_IMPORTS.values()):
+            raise HTTPException(409,'这一模式已有商品资料正在提取，请等待完成。')
+        import_id=uuid.uuid4().hex;material_folder(job_id,import_id).mkdir(parents=True)
+        provider={k:getattr(client,a,'') if isinstance(getattr(client,a,''),str) else '' for k,a in [('id','provider_id'),('name','provider_name'),('model','model')]}
+        MATERIAL_IMPORTS[import_id]={'id':import_id,'job_id':job_id,'mode':mode,'kind':kind,'status':'queued',
+            'created':time.time(),'message':'等待提取商品资料…','error':'','source_text':'','profile':None,'facts':'','provider':provider}
+        return material_update(import_id)
+
+
+def material_work(import_id,client,text='',paths=None,document=None):
+    try:
+        material_update(import_id,status='working',message='正在准备商品资料…')
+        if paths:
+            text=product_imports.image_text(paths,lambda note:material_update(import_id,message=note))
+        if document:
+            text=document_imports.document_text(document,lambda note:material_update(import_id,message=note))
+        material_update(import_id,source_text=text,message='正在用所选文字服务提取商品名称与卖点…')
+        profile=client.extract_product_material(text)
+        from client.ai import ProductProfile,validate_product
+        # Validate again at the boundary: every item must have a real source quote.
+        profile=validate_product(ProductProfile.model_validate(profile),text,'').model_dump()
+        material_update(import_id,status='done',profile=profile,facts=product_facts_text(profile),
+            message='提取完成，请核对后填入当前商品资料。')
+    except Exception as exc:
+        message=str(exc) if isinstance(exc,(ValueError,RuntimeError)) else '商品资料处理未完成，请检查图片、文档或文字后重试。'
+        material_update(import_id,status='error',error=message,message=message)
+
+
+class MaterialTextInput(BaseModel):
+    mode:str=Field(pattern='^(same|switch)$')
+    text:str=Field(min_length=1,max_length=20000)
+
+
+@app.post('/api/jobs/{job_id}/product-imports/text',status_code=202)
+def material_text(job_id:str,data:MaterialTextInput):
+    if not data.text.strip():raise HTTPException(400,'请先粘贴商品文案。')
+    try:client=ai_client()
+    except ValueError as exc:raise HTTPException(400,str(exc))
+    record=new_material(job_id,data.mode,'text',client)
+    PRODUCT_POOL.submit(material_work,record['id'],client,data.text.strip())
+    return record
+
+
+@app.post('/api/jobs/{job_id}/product-imports/images',status_code=202)
+async def material_images(job_id:str,mode:str=Form(...),files:list[UploadFile]=File(...)):
+    record=None;paths=[]
+    try:
+        if not 1<=len(files)<=product_imports.MAX_IMAGES:raise HTTPException(400,'每次请选择 1–5 张商品图片。')
+        try:client=ai_client()
+        except ValueError as exc:raise HTTPException(400,str(exc))
+        record=new_material(job_id,mode,'images',client);total=0
+        for index,file in enumerate(files):
+            path=material_folder(job_id,record['id'])/f'image-{index+1}.bin';paths.append(path);size=0
+            with path.open('wb') as output:
+                while chunk:=await file.read(256*1024):
+                    size+=len(chunk);total+=len(chunk)
+                    if size>product_imports.MAX_IMAGE_BYTES or total>product_imports.MAX_TOTAL_BYTES:
+                        raise HTTPException(400,'单张图片最多 12 MB，每次合计最多 30 MB。')
+                    output.write(chunk)
+            if size<20:raise HTTPException(400,'图片为空或无法读取，请重新选择。')
+        PRODUCT_POOL.submit(material_work,record['id'],client,'',paths)
+        return record
+    except Exception as exc:
+        if record:
+            material_update(record['id'],status='error',message='图片导入未完成，请重新选择。',error='图片导入未完成。')
+            for path in paths:path.unlink(missing_ok=True)
+        raise
+    finally:
+        for file in files:await file.close()
+
+
+@app.post('/api/jobs/{job_id}/product-imports/document',status_code=202)
+async def material_document(job_id:str,mode:str=Form(...),file:UploadFile=File(...)):
+    record=None
+    try:
+        suffix=Path(file.filename or '').suffix.lower()
+        if suffix not in document_imports.SUFFIXES:raise ValueError('请选择 DOCX、PDF 或 TXT 文档；旧版 DOC 请另存为 DOCX。')
+        client=ai_client();record=new_material(job_id,mode,'document',client)
+        path=material_folder(job_id,record['id'])/('document'+suffix)
+        await save_document(file,path)
+        record=material_update(record['id'],document_name=Path(file.filename).name[:200])
+        PRODUCT_POOL.submit(material_work,record['id'],client,'',None,path)
+        return record
+    except ValueError as exc:
+        if record:material_update(record['id'],status='error',error=str(exc),message=str(exc))
+        raise HTTPException(400,str(exc))
+    finally:await file.close()
+
+
+@app.get('/api/jobs/{job_id}/product-imports')
+def material_list(job_id:str,mode:str='switch'):
+    job(job_id)
+    with LOCK:
+        rows=[copy.deepcopy(r) for r in MATERIAL_IMPORTS.values() if r['job_id']==job_id and r['mode']==mode]
+        return sorted(rows,key=lambda r:r['created'],reverse=True)[:5]
+
+
+@app.get('/api/jobs/{job_id}/product-imports/{import_id}')
+def get_material(job_id:str,import_id:str):
+    with LOCK:return material_record(job_id,import_id)
+
+
+class MaterialDraftInput(BaseModel):
+    mode:str=Field(pattern='^(same|switch)$')
+    text:str=Field(default='',max_length=5000)
+    source_id:str=Field(default='',max_length=100)
+    active:bool=True
+
+
+@app.put('/api/jobs/{job_id}/product-material')
+def save_material_draft(job_id:str,data:MaterialDraftInput):
+    with LOCK:
+        item=job(job_id);drafts=copy.deepcopy(item.get('material_drafts',{}))
+        if data.active:
+            record=material_record(job_id,data.source_id)
+            if record['mode']!=data.mode or record['status']!='done':raise HTTPException(409,'提取记录与当前模式不匹配，或尚未完成。')
+            if not data.text.strip():raise HTTPException(400,'请核对并补充商品名称和可用卖点。')
+            drafts[data.mode]={'text':data.text.strip(),'source_id':record['id'],'profile':record['profile'],
+                'kind':record['kind'],'updated':time.time(),'active':True}
+        elif data.mode in drafts:drafts[data.mode]['active']=False
+        update(job_id,material_drafts=drafts)
+        return drafts
+
+
+class ManuscriptInput(BaseModel):
+    base_revision:int=Field(ge=0,strict=True)
+    text:str=Field(min_length=1,max_length=20000)
+    segments:list[dict]|None=Field(default=None,max_length=40)
+
+
+class RestoreInput(BaseModel):
+    base_revision:int=Field(ge=0,strict=True)
+    revision:int=Field(ge=0,strict=True)
+
+
+class RewriteInput(BaseModel):
+    base_revision:int=Field(ge=0,strict=True)
+    direction:str=Field(default='',max_length=1500)
+
+
+def workspace_error(exc):
+    raise HTTPException(409 if isinstance(exc,FileExistsError) else 400,str(exc)) from exc
+
+
+@app.get('/api/jobs/{job_id}/drafts/{batch_id}/{index}/versions')
+def script_versions(job_id:str,batch_id:str,index:int):
+    with LOCK:
+        try:
+            item=job(job_id);rows=manuscripts.versions(directory(job_id),item,batch_id,index)
+            return {'current':rows[-1],'versions':[{k:v for k,v in r.items() if k not in ('text','segments')} for r in reversed(rows)]}
+        except ValueError as exc:workspace_error(exc)
+
+
+@app.get('/api/jobs/{job_id}/drafts/{batch_id}/{index}/versions/{revision}')
+def script_version(job_id:str,batch_id:str,index:int,revision:int):
+    with LOCK:
+        try:
+            rows=manuscripts.versions(directory(job_id),job(job_id),batch_id,index)
+            found=next((r for r in rows if r['revision']==revision),None)
+            if found is None:raise ValueError('版本不存在。')
+            return found
+        except ValueError as exc:workspace_error(exc)
+
+
+@app.put('/api/jobs/{job_id}/drafts/{batch_id}/{index}/manuscript')
+def save_script(job_id:str,batch_id:str,index:int,data:ManuscriptInput):
+    with LOCK:
+        try:return manuscripts.save(directory(job_id),job(job_id),batch_id,index,data.base_revision,data.text,data.segments)
+        except (ValueError,FileExistsError) as exc:workspace_error(exc)
+
+
+@app.post('/api/jobs/{job_id}/drafts/{batch_id}/{index}/restore')
+def restore_script(job_id:str,batch_id:str,index:int,data:RestoreInput):
+    with LOCK:
+        try:
+            item=job(job_id);rows=manuscripts.versions(directory(job_id),item,batch_id,index)
+            found=next((r for r in rows if r['revision']==data.revision),None)
+            if found is None:raise ValueError('版本不存在。')
+            return manuscripts.save(directory(job_id),item,batch_id,index,data.base_revision,found['text'],found['segments'],
+                kind='restore',note=f'恢复版本 v{data.revision}',restored_from=data.revision)
+        except (ValueError,FileExistsError) as exc:workspace_error(exc)
+
+
+def rewrite_script_work(job_id,batch_id,index,data,client):
+    try:
+        item=copy.deepcopy(get_job(job_id));batch,variant=manuscripts.script(item,batch_id,index)
+        previous=manuscripts.current(directory(job_id),item,batch_id,index)
+        reference=batch.get('reference',variant['segments'])
+        direction='仅重写这一条，完整保留原段数、id、role和顺序。\n'+batch.get('direction','')+'\n'+variant.get('generation_focus','')
+        direction+='\n本次要求：'+data.direction+'\n当前稿（作为改写对象，不新增事实）：'+previous['text']
+        product=batch.get('product_snapshot') or {}
+        if product.get('forbidden'):direction+='\n不可使用：'+product['forbidden']
+        result=client.generate(reference,'same' if batch['mode']=='original' else batch['mode'],batch['facts'],1,direction)
+        if len(result.get('variants',[]))!=1:raise ValueError('重写结果不是单条稿件，原版本已保留。')
+        segments=manuscripts.aligned(reference,result['variants'][0]['segments'])
+        with LOCK:
+            manuscripts.save(directory(job_id),get_job(job_id),batch_id,index,data.base_revision,
+                '\n\n'.join(s['text'] for s in segments),segments,kind='rewrite',note=data.direction or '按当前方向重写')
+            update(job_id,status='done',operation='',error='',message=f'第 {index+1} 条已重写并保存为新版本，其他稿件保持原样。')
+    except Exception as exc:fail(job_id,exc)
+
+
+@app.post('/api/jobs/{job_id}/drafts/{batch_id}/{index}/rewrite',status_code=202)
+def rewrite_script(job_id:str,batch_id:str,index:int,data:RewriteInput):
+    with LOCK:
+        try:
+            item=ready(job_id);manuscripts.script(item,batch_id,index)
+            if manuscripts.current(directory(job_id),item,batch_id,index)['revision']!=data.base_revision:
+                raise FileExistsError('成稿版本已变化，请刷新后重写。')
+            client=ai_client()
+            update(job_id,status='working',operation='rewrite',error='',message=f'正在重写第 {index+1} 条，原版本保留…')
+            AI_POOL.submit(rewrite_script_work,job_id,batch_id,index,data,client)
+            return {'id':job_id}
+        except (ValueError,FileExistsError) as exc:workspace_error(exc)
+
+
+@app.get('/api/products')
+def product_list():
+    with LOCK:return [{k:v for k,v in p.items() if k!='history'} for p in products.list_products(STATE)]
+
+
+@app.post('/api/products',status_code=201)
+def product_create(data:products.ProductInput):
+    with LOCK:
+        try:return products.save(STATE,data)
+        except (ValueError,FileExistsError) as exc:workspace_error(exc)
+
+
+@app.get('/api/products/{product_id}')
+def product_get(product_id:str):
+    with LOCK:
+        try:return products.get(STATE,product_id)
+        except ValueError as exc:workspace_error(exc)
+
+
+@app.put('/api/products/{product_id}')
+def product_update(product_id:str,data:products.ProductInput):
+    with LOCK:
+        try:return products.save(STATE,data,product_id)
+        except (ValueError,FileExistsError) as exc:workspace_error(exc)
+
+
+@app.delete('/api/products/{product_id}')
+def product_archive(product_id:str):
+    with LOCK:
+        try:products.archive(STATE,product_id);return {'archived':True}
+        except ValueError as exc:workspace_error(exc)
+
+
+class PlanInput(BaseModel):
+    count:int=Field(ge=1,strict=True)
+    focus:planning.Focus=Field(default_factory=planning.Focus)
+    offset:int=Field(default=0,ge=0)
+    limit:int=Field(default=14,ge=1,le=30)
+
+
+@app.post('/api/drafts/plan')
+def preview_plan(data:PlanInput):
+    return {'count':data.count,'items':[{'index':i,'label':data.focus.custom.get(str(i),planning.ANGLES[(i-1)%len(planning.ANGLES)]),'direction':planning.direction(data.focus,i)}
+        for i in range(data.offset+1,min(data.count,data.offset+data.limit)+1)]}
 
 
 app.mount('/static',StaticFiles(directory=Path(__file__).parent/'web'),name='static')

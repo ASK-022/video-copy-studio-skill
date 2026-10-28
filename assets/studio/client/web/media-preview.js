@@ -65,7 +65,7 @@ function renderTranscriptPreview(job){
     rememberPreview();clearPreviewPlayers();previewProject=job.id;previewInfo=null;previewRequestKey='';previewRowsSignature='';previewRows=[];previewActive=-1;++previewRequestEpoch;
     const prefs=previewPreferences.get(job.id);previewView=prefs?.view||'corrected';previewMode=prefs?.mode||'video';$('transcription-preview-rate').value=prefs?.rate||'1';$('transcription-follow').checked=prefs?.follow??true;previewError('');
   }
-  $('transcription-preview').hidden=activeScene!=='transcript';
+  $('transcription-preview').hidden=activeScene!=='transcript'||job.kind==='script';
   if(activeScene!=='transcript'){previewVideo.pause();previewAudio.pause();return;}
   renderPreviewRows(job);
   if(!job.input_file){previewVideo.hidden=true;$('transcription-audio-shell').hidden=true;previewStatus('原文件准备完成后即可播放。');return;}

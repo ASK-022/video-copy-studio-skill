@@ -61,7 +61,7 @@ function sceneSelect(scene){
   document.querySelector('.generate-panel').hidden=scene!=='generate';
   $('generation-reference').hidden=scene!=='generate';
   $('results-section').hidden=scene!=='generate'||!current?.batches.length;
-  $('scene-report-panel').hidden=scene==='generate';
+  $('scene-report-panel').hidden=scene==='generate'||current?.kind==='script';
   if(scene!=='generate'){$('scene-report-title').textContent=sceneNames[scene];$('scene-description').textContent=sceneDescriptions[scene];$('scene-run').textContent='生成'+sceneNames[scene];}
   if(current)renderSceneUI(current);
 }
@@ -82,7 +82,7 @@ $('vision-provider-select').onchange=()=>{if(current)sceneDrafts.set(current.id,
 function renderSceneUI(job){
   if(sceneProjectId!==job.id){
     sceneProjectId=job.id;sceneReportSignature='';const draft=sceneDrafts.get(job.id);
-    activeScene=draft?.scene||'transcript';$('visual-mode').value=draft?.visual||'local';visionOptions();$('vision-provider-select').value=draft?.vision||'';visualHint();sceneSelect(activeScene);return;
+    activeScene=draft?.scene||(job.kind==='script'?'generate':'transcript');$('visual-mode').value=draft?.visual||'local';visionOptions();$('vision-provider-select').value=draft?.vision||'';visualHint();sceneSelect(activeScene);return;
   }
   const working=busy(job),report=job.reports?.[activeScene];
   renderGenerationReference(job);
@@ -116,7 +116,7 @@ $('scene-copy').onclick=()=>copyText(current?.reports?.[activeScene]?.markdown||
 $('original-generate').onclick=async()=>{
   if(!current||busy(current))return;const count=Number($('count').value),duration=Number($('original-duration').value);
   if(!Number.isSafeInteger(count)||count<1||!Number.isInteger(duration)||duration<10||duration>1800){toast('条数需为正整数，时长需为 10–1800 秒。');return;}
-  try{await api('/jobs/'+current.id+'/drafts/generate',{method:'POST',body:JSON.stringify({mode:'original',facts:$('product-facts').value,count,direction:$('direction').value,reference_text:$('transcript').value,quality_check:$('quality-check').checked,target_duration:duration,purpose:$('original-purpose').value,audience:$('original-audience').value})});await selectJob(current.id);}catch(e){toast(e.message);}
+  try{await api('/jobs/'+current.id+'/drafts/generate',{method:'POST',body:JSON.stringify({mode:'original',facts:$('product-facts').value,count,direction:$('direction').value,reference_text:$('transcript').value,quality_check:$('quality-check').checked,target_duration:duration,purpose:$('original-purpose').value,audience:$('original-audience').value,...(typeof generationOptions==='function'?generationOptions():{})})});await selectJob(current.id);}catch(e){toast(e.message);}
 };
 async function refreshCue(){const state=await api('/cue/settings');providerStatus('provider-cue-status',state.has_key);$('cue-import').hidden=!state.existing_available||state.has_key;}
 $('cue-manage').onclick=()=>$('cue-config-panel').hidden=!$('cue-config-panel').hidden;

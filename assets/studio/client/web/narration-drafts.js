@@ -1,5 +1,5 @@
 'use strict';
-// Browser-local export edits are separate from the generated structure and quality report.
+// File-backed manuscript versions are authoritative; local storage is an offline buffer.
 class NarrationDrafts {
   constructor(storage=null){this.storage=storage;this.cache=new Map();this.projects=new Map();this.storageFailed=false;}
   source(variant){return (variant.segments||[]).map(s=>s.text||'').join('\n\n');}
@@ -19,8 +19,17 @@ class NarrationDrafts {
     }
     const saved=this.cache.get(key);
     const rows=batch.variants.map((variant,i)=>{
-      const source=this.source(variant),old=saved[i];
-      return old&&old.source===source&&typeof old.text==='string'?{source,text:old.text,selected:old.selected!==false,collapsed:old.collapsed===true}:{source,text:source,selected:true,collapsed:false};
+      const source=this.source(variant),server=variant.manuscript||{revision:0,text:source,segments:variant.segments,kind:'generated'},old=saved[i];
+      let row=old&&old.source===source&&typeof old.text==='string'?old:{source,text:server.text,selected:true,collapsed:false};
+      if(row.revision===undefined){
+        const legacy=!variant.manuscript&&row.text!==source;
+        if(!legacy)row.text=server.text;
+        Object.assign(row,{revision:server.revision,persistedText:server.text,segments:legacy?null:server.segments,dirty:legacy,saveStatus:legacy?'pending':'saved'});
+      }else if(server.revision>row.revision&&(!row.dirty||row.text===server.text)){
+        Object.assign(row,{text:server.text,segments:server.segments,revision:server.revision,persistedText:server.text,dirty:false,saveStatus:'saved'});
+      }
+      row.selected=row.selected!==false;row.collapsed=row.collapsed===true;
+      return row;
     });
     this.cache.set(key,rows);return rows;
   }

@@ -2,3 +2,4 @@
 rapidocr-onnxruntime==1.4.4
 scenedetect==0.7.1
 rapidfuzz>=3.14,<4
+pypdfium2>=4.30,<6

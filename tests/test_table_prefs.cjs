@@ -1,0 +1,11 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const Prefs=vm.runInNewContext(fs.readFileSync('assets/studio/client/web/table-prefs.js','utf8')+'\nTableExportPrefs;');
+const map=new Map(),storage={getItem:k=>map.get(k),setItem:(k,v)=>map.set(k,v)},prefs=new Prefs(storage);
+const job={id:'A',kind:'link',source:'https://example.com/A',product_profile:{product:{value:'参考商品'}}};
+const batch={id:'B',mode:'switch',facts:'商品：替换商品\n卖点：清新',variants:[{production_segments:[{screen_suggestion:'特写'}]},{production_segments:[{screen_suggestion:'未选择镜头'}]}]};
+const draft=prefs.load(job,batch);assert.equal(draft.product,'替换商品');assert.equal(draft.template,'script');assert.equal(draft.required_time,'');assert.equal(draft.quantity,'');
+draft.required_time='周五前';draft.template='shooting';prefs.save(job,batch,draft);
+assert.equal(new Prefs(storage).load(job,batch).required_time,'周五前');assert.equal(prefs.load({...job,id:'other'},batch).required_time,'');
+assert.equal(prefs.load(job,{...batch,id:'other'}).template,'script');
+assert.equal(prefs.suggestions(batch,[0]),'【脚本生成的拍摄建议，待确认】\n特写');
+console.log('Table metadata: template defaults, product source, batch isolation and selected shot suggestions passed.');

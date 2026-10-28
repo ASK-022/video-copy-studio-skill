@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 class SelectedDraft(BaseModel):
     index: int = Field(ge=0, strict=True)
     text: str = Field(min_length=1, max_length=20000)
+    revision: int | None = Field(default=None,ge=0,strict=True)
 
 
 class TableOptions(BaseModel):
@@ -47,6 +48,9 @@ def narration_rows(item, request):
         raise ValueError('单次导出内容过多，请分次选择导出。')
     rows = []
     for row in sorted(request.items, key=lambda r: r.index):
+        current=batch['variants'][row.index].get('manuscript',{'revision':0})
+        if row.revision is not None and (row.revision!=current['revision'] or row.text.strip()!=current.get('text','\n\n'.join(s['text'] for s in batch['variants'][row.index]['segments'])).strip()):
+            raise ValueError('所选成稿版本已变化，请刷新后重新导出。')
         text = row.text.replace('\r\n', '\n').replace('\r', '\n').strip()
         if not text or '\x00' in text:
             raise ValueError('所选文案存在空白或无效字符，请检查后再导出。')
@@ -60,6 +64,7 @@ def table_rows(item, request):
     mode={'same':'同商品裂变','switch':'换商品套结构','original':'原创脚本'}.get(batch.get('mode'),'脚本')
     created=datetime.fromtimestamp(batch.get('created',0)).strftime('%Y-%m-%d %H:%M:%S')
     return [[i,title,text,len(re.sub(r'\s','',text)),mode,item['title'],created,
+             ('成稿 v'+str(batch['variants'][i-1]['manuscript']['revision'])) if batch['variants'][i-1].get('manuscript',{}).get('text','').strip()==text else
              '修改稿' if text != '\n\n'.join(s['text'] for s in batch['variants'][i-1]['segments']).strip() else '生成原稿']
             for i,title,text in rows]
 

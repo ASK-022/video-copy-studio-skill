@@ -24,7 +24,19 @@
         "markers",
         "export",
         "export-report",
-        "feishu"
+        "feishu",
+        "products",
+        "product-get",
+        "product-save",
+        "plan",
+        "manuscript",
+        "save-manuscript",
+        "restore-manuscript",
+        "rewrite",
+        "extract-material",
+        "material-status",
+        "apply-material",
+        "import-script"
       ]
     },
     "job_id": {
@@ -208,6 +220,178 @@
           "maximum": 1000000
         }
       }
+    },
+    "product_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "product_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "product": {
+      "properties": {
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "aliases": {
+          "default": "",
+          "maxLength": 500,
+          "title": "Aliases",
+          "type": "string"
+        },
+        "facts": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Facts",
+          "type": "string"
+        },
+        "pending": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Pending",
+          "type": "string"
+        },
+        "forbidden": {
+          "default": "",
+          "maxLength": 1500,
+          "title": "Forbidden",
+          "type": "string"
+        },
+        "audience": {
+          "default": "",
+          "maxLength": 300,
+          "title": "Audience",
+          "type": "string"
+        },
+        "tone": {
+          "default": "",
+          "maxLength": 100,
+          "title": "Tone",
+          "type": "string"
+        },
+        "source": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Source",
+          "type": "string"
+        },
+        "confirmed": {
+          "const": true,
+          "description": "Only after the user checks the facts."
+        },
+        "base_version": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Base Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "facts",
+        "confirmed"
+      ],
+      "title": "ProductInput",
+      "type": "object"
+    },
+    "focus": {
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "audience": {
+          "default": "",
+          "maxLength": 300,
+          "title": "Audience",
+          "type": "string"
+        },
+        "scenario": {
+          "default": "",
+          "maxLength": 300,
+          "title": "Scenario",
+          "type": "string"
+        },
+        "tone": {
+          "default": "自然口语",
+          "maxLength": 100,
+          "title": "Tone",
+          "type": "string"
+        },
+        "strength": {
+          "default": "balanced",
+          "pattern": "^(light|balanced|strong)$",
+          "title": "Strength",
+          "type": "string"
+        },
+        "custom": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Custom",
+          "type": "object"
+        }
+      },
+      "title": "Focus",
+      "type": "object"
+    },
+    "script_index": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1
+    },
+    "base_revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "segments": {
+      "type": "array",
+      "maxItems": 40,
+      "items": {
+        "type": "object"
+      }
+    },
+    "offset": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 30
+    },
+    "images": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "import_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "document": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Local DOCX, PDF or TXT product document path."
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 160
     }
   },
   "allOf": [
@@ -259,7 +443,14 @@
               "markers",
               "export",
               "export-report",
-              "feishu"
+              "feishu",
+              "manuscript",
+              "save-manuscript",
+              "restore-manuscript",
+              "rewrite",
+              "extract-material",
+              "material-status",
+              "apply-material"
             ]
           }
         }
@@ -302,8 +493,259 @@
         ]
       },
       "then": {
+        "anyOf": [
+          {
+            "required": [
+              "facts"
+            ]
+          },
+          {
+            "required": [
+              "product_id"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "enum": [
+              "product-get"
+            ]
+          }
+        }
+      },
+      "then": {
         "required": [
-          "facts"
+          "product_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "enum": [
+              "product-save"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "product"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "enum": [
+              "plan"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "count"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "enum": [
+              "save-manuscript"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "base_revision",
+          "text"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "enum": [
+              "restore-manuscript"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "base_revision",
+          "revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "enum": [
+              "rewrite"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "base_revision"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "enum": [
+              "material-status"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "import_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "enum": [
+              "apply-material"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "import_id",
+          "text"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "extract-material"
+          }
+        }
+      },
+      "then": {
+        "oneOf": [
+          {
+            "required": [
+              "text"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "images"
+                  ]
+                },
+                {
+                  "required": [
+                    "document"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "required": [
+              "images"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "text"
+                  ]
+                },
+                {
+                  "required": [
+                    "document"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "required": [
+              "document"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "text"
+                  ]
+                },
+                {
+                  "required": [
+                    "images"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "import-script"
+          }
+        }
+      },
+      "then": {
+        "oneOf": [
+          {
+            "required": [
+              "text"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "file"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "required": [
+              "file"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "text"
+                  ]
+                }
+              ]
+            }
+          }
         ]
       }
     }

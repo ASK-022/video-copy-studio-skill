@@ -29,10 +29,35 @@ CLI 公共参数放在子命令前：`--base-url http://127.0.0.1:8777`、`--run
 | export | `job_id`、`output` | `batch_id=latest`、`indices=全部`、`format=xlsx`、`template=script`、`table_options={}`、`edits={}`、`overwrite=false` | 已验证的输出路径、字节数、脚本数 |
 | export-report | `job_id`、`output` | `scene=transcript`、`format=md/json`、`overwrite=false` | 报告文件路径 |
 | feishu | `job_id` | 与 export 的选稿参数相同；`write=false` | 默认预览配置目标；write=true 才追加 |
+| products | 无 | 无 | 本机商品卡片，不含归档商品 |
+| product-get | `product_id` | 无 | 商品资料、当前版本与历史 |
+| product-save | `product` | 更新时提供 `product_id` 和 `product.base_version` | 商品新版本；必须人工核对后 `product.confirmed=true` |
+| plan | `count` | `focus={}`、`offset=0`、`limit=14`（最多 30） | 分页方向预览，不调用 AI |
+| manuscript | `job_id` | `batch_id=latest`、`script_index=1`、可选 `revision` | 当前成稿及版本列表，或指定版本全文 |
+| save-manuscript | `job_id`、`base_revision`、`text` | `batch_id`、`script_index`、`segments` | 本机文件中的新成稿版本 |
+| restore-manuscript | `job_id`、`base_revision`、`revision` | `batch_id`、`script_index` | 新增恢复版本，旧版本保留 |
+| rewrite | `job_id`、`base_revision` | `batch_id`、`script_index`、`direction` | 异步单条重写，使用批次商品快照；结果为新版本 |
+| import-script | `text` 或 `file` 二选一 | `title`、`facts`、`auto_ai=true`；file 为本机 DOCX/PDF/TXT | 新参考任务 `id`；异步读取与结构分析，不执行 ASR 或默认纠错 |
+| extract-material | `job_id`、`text` / `images` / `document` 三选一 | `mode=switch`（same/switch），images 为 1–5 个本机图片路径，document 为单个本机文档路径 | 独立商品提取记录 `id`，后续作为 `import_id` |
+| material-status | `job_id`、`import_id` | 无 | 提取状态、来源文字、商品候选、待核对项与实际服务商 |
+| apply-material | `job_id`、`import_id`、`text` | text 为核对后的商品资料 | 填入原参考对应模式的商品草稿，不更改参考口播或自动保存商品库 |
 
 `job_id`、`batch_id` 必须使用服务实际返回的值。`indices` 从 **1** 开始；`edits` 的键是字符串序号，如 `{"2":"修改后的第二条正文"}`。编辑稿只用于本次复制/导出/写入，不改原结构和评分。
 
 ## 生成参数
+
+`import-script` 导入的是完整参考脚本，与提取商品资料不同。DOCX/PDF/TXT 先在本机读取正文，单份最大 20 MB、2 万字，PDF 最多 40 页，扫描 PDF 使用本地 OCR。旧版 `.doc` 需另存为 `.docx`。原文件不发送 AI，只发送读取后的文字；原文保留在 raw，不虚构音视频或时间戳。用空行分段时保留段数、原句与顺序（最多 40 段），没有空行分段时按营销功能分析。PDF 复杂排版及扫描识别结果须核对。`auto_ai=false` 仅导入文字，之后用 analyze 分析，再 generate。不要把含多份独立脚本的文档当作一份混合参考；让用户拆分上传或明确挑选一份。
+
+商品图片先在本机 OCR，只有识别文字发送到当前文字服务商；每张最多 12 MB、合计最多 30 MB，支持 PNG/JPG/WebP。不凭外观推测商品。商品文案直接发送文字；待核对内容独立返回，不自动用于生成。商品提取有自己的状态，使用 `material-status` 查询到 `status=done`，不能用参考任务的 done 状态当作提取完成。核对候选后再 `apply-material`，原视频商品与目标商品分别保留。
+
+商品 `document` 支持 DOCX/PDF/TXT，大小与页数上限同上；本机读正文后沿用商品文案提取。结果含 `kind=document`、`document_name`、`source_text` 和候选资料；待核对项仍不自动加入可用卖点。
+
+Web「脚本改写」支持拖拽、多选和分次追加文档，列表可逐个移除待上传文件；导入后的删除将对应参考移入回收站。每个文件单独建立参考并显示上传结果，失败项可重试；成功项不会再次上传。CLI 的 `import-script` 每次仍只接收一份文件，多文件调用时逐份提交并分别保存返回的任务 ID，不能合并正文当作同一参考。
+
+- `product_id` 可选择商品库；不给 `facts` 时 CLI 自动取该商品资料及版本。显式指定 `product_version` 可以锁定版本；资料更新冲突后重新核对，不自动替用户确认。`product` 字段包含 `name`、`facts`（已确认卖点）、`aliases`、`pending`、`forbidden`、`audience`、`tone`、`source`；待确认信息不进入生成事实。
+- `focus`: `enabled=true`、`audience`、`scenario`、`tone`、`strength=light/balanced/strong`、`custom={"1":"第一条方向"}`。方向变化始终服从原段数、顺序和功能；不增加商品事实。
+- `script_index` 从 1 开始。修改前读取当前 `revision` 并传为 `base_revision`，冲突时保留编辑内容，再读取版本；不盲目覆盖另一窗口的修改。
+- 导出默认使用所选脚本的当前成稿；`edits` 仍可显式提供一次性导出文本。原生成分段和质检评分不会自动套到手改或单条重写版本。
 
 - `mode`: `same` 同商品裂变；`switch` 换商品套原结构（此时必须显式给目标商品 `facts`）；`original` 按主题原创骨架。
 - `count`: 大于 0 的整数，服务每次最多请求 2 条、逐步保存；数量多时耗时/用量随之增加，没有“无条件免费生成”承诺。
@@ -61,6 +86,14 @@ CLI 公共参数放在子命令前：`--base-url http://127.0.0.1:8777`、`--run
 `table_options`：`product` 产品名，`reference_url` 参考链接，`required_time` 需求时间说明，`completion` 拍摄完成时间/情况；拍摄表另可给 `quantity` 正整数、`shot_requirements` 镜头需求、`shot_reference_1/2` 参考链接或说明。留空不虚构；未提供镜头需求时可汇总已有分段拍摄建议并注明待确认。显式传空字符串可清空建议。镜头图片不自动插入，可在 Excel 中后补。
 
 示例：
+
+```json
+{"action":"import-script","file":"C:/Scripts/reference.docx","auto_ai":true}
+```
+
+```json
+{"action":"import-script","text":"开场原文。\n\n商品介绍原文。\n\n结尾原文。","auto_ai":true}
+```
 
 ```json
 {"action":"import","file":"C:/Videos/reference.mp4","facts":"商品：桌面茶香香薰","auto_ai":true}

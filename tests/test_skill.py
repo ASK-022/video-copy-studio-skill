@@ -49,6 +49,36 @@ class LocalTransport(unittest.TestCase):
 
 
 class PackagingContract(unittest.TestCase):
+    def test_script_and_document_cli_routes_and_exclusive_sources(self):
+        class Client:
+            def request(self,path,*args):return {'path':path,'args':args}
+            def upload(self,*args,**kwargs):return {'upload':args,'options':kwargs}
+            def upload_materials(self,*args,**kwargs):return {'materials':args,'options':kwargs}
+        client=Client()
+        self.assertEqual(invoke(client,{'action':'import-script','text':'脚本原文'})['path'],'/jobs/script')
+        self.assertTrue(invoke(client,{'action':'import-script','file':'script.docx'})['options']['script'])
+        result=invoke(client,{'action':'extract-material','job_id':'j','document':'product.pdf'})
+        self.assertEqual(result['materials'],('j',['product.pdf'],'switch'));self.assertTrue(result['options']['document'])
+        with self.assertRaises(ValueError):invoke(client,{'action':'import-script','file':'script.docx','text':'不能混用'})
+        with self.assertRaises(ValueError):invoke(client,{'action':'extract-material','job_id':'j','text':'不能混用','document':'product.pdf'})
+
+    def test_export_prefers_current_file_backed_manuscript(self):
+        job={'batches':[{'id':'b','variants':[{'segments':[{'text':'生成原稿'}],
+            'manuscript':{'revision':2,'text':'已修改成稿'}}]}]}
+        batch,items=selected_batch(job,{})
+        self.assertEqual(items,[{'index':0,'text':'已修改成稿','revision':2}])
+        _,explicit=selected_batch(job,{'edits':{'1':'一次性导出稿'}})
+        self.assertEqual(explicit,[{'index':0,'text':'一次性导出稿'}])
+
+    def test_cli_uses_one_based_script_index_and_requires_revision(self):
+        class Client:
+            def request(self,path,*args):
+                if path=='/jobs/j':return {'batches':[{'id':'b','variants':[{}]}]}
+                return {'path':path,'args':args}
+        self.assertEqual(invoke(Client(),{'action':'manuscript','job_id':'j'})['path'],'/jobs/j/drafts/b/0/versions')
+        with self.assertRaises(ValueError):invoke(Client(),{'action':'rewrite','job_id':'j'})
+        with self.assertRaises(ValueError):invoke(Client(),{'action':'manuscript','job_id':'j','script_index':0})
+
     def test_missing_model_invalidates_success_receipt(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);weight=root/'model.pt';weight.write_bytes(b'verified-checkpoint')

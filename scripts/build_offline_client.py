@@ -121,7 +121,7 @@ def package(work,output):
     freeze('offline_setup.py','VideoCopyStudio-Offline-Setup-v'+VERSION,output,work)
     setup=output/f'VideoCopyStudio-Offline-Setup-v{VERSION}.exe'
     (output/'SHA256SUMS.txt').write_text(''.join(item['sha256']+'  '+item['name']+'\n' for item in parts)+digest(setup)+'  '+setup.name+'\n'+digest(manifest)+'  '+manifest.name+'\n',encoding='ascii')
-    (output/'离线安装说明.txt').write_text('请下载本目录全部 ZIP 分包、offline-downloads 清单和 Offline-Setup.exe，放在同一文件夹。\n双击 Offline-Setup.exe，选择安装位置，校验和解压完成后点击“打开离线客户端”。安装过程无需联网、不需要另装 Python 或解压软件。\n进入客户端后可断网导入本地视频并转写。AI 改写与链接解析仍需联网并由使用者配置自己的服务。\n国内主下载选择 123 云盘普通分享，GitHub Release 提供相同分包备用；网盘链接以实际登录上传后生成的地址为准。\n',encoding='utf-8-sig')
+    (output/'README-OFFLINE.txt').write_text('请下载本目录全部 ZIP 分包、offline-downloads 清单和 Offline-Setup.exe，放在同一文件夹。\n双击 Offline-Setup.exe，选择安装位置，校验和解压完成后点击“打开离线客户端”。安装过程无需联网、不需要另装 Python 或解压软件。\n进入客户端后可断网导入本地视频并转写。AI 改写与链接解析仍需联网并由使用者配置自己的服务。\n国内采用蓝奏云时，用 build_lanzou_package.py 生成小分包与专用安装器；原始大分包可用于 U 盘或共享盘分发。两种分包勿混用，分享链接以实际上传后生成的地址为准。\n',encoding='utf-8-sig')
     print(json.dumps(description,ensure_ascii=False),flush=True)
 
 

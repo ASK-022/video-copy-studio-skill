@@ -9,3 +9,5 @@ Agent Skill ZIP 包含文案工坊的 Agent 接口、客户端与安装脚本，
 - DeepSeek、TikHub、Cue、飞书为可选外部服务，需要每位使用者单独配置账号、权限与密钥；未包含任何共享凭据。
 
 完整离线客户端的模型来源为魔搭公开仓库 `iic/SenseVoiceSmall`、`damo/punc_ct-transformer_zh-cn-common-vocab272727-pytorch` 和 `iic/speech_timestamp_prediction-v1-16k-offline`，模型卡声明 Apache License 2.0，原模型卡随对应资源目录提供。Python 和各依赖的许可证在 `Runtime/python` 及各 `.dist-info` 下；Chromium 原始发行文件保存在 `Browsers`；Gyan FFmpeg 9.0.2 的原始许可证、说明和文档保存在 `FFmpeg`。Gyan 构建声明 GPLv3，构建与对应源码信息见 https://www.gyan.dev/ffmpeg/builds/ 。各第三方组件的许可证分别适用。
+
+蓝奏云分发变体只对已校验原始资源分块包装，不修改应用和模型内容，原始许可证仍随完整客户端保留。另附未经修改的 Microsoft Visual C++ x64 Redistributable，来自 https://aka.ms/vc14/vc_redist.x64.exe，已核验 Microsoft Corporation 数字签名；保留微软安装器内许可条款，使用者自行按微软界面准备系统运行库。

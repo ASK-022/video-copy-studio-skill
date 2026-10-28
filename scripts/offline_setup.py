@@ -70,13 +70,13 @@ def install(directory,parent,emit=lambda _:None):
 
 
 class Setup:
-    def __init__(self,window,directory):
-        self.window=window;self.directory=directory;self.events=queue.Queue();self.busy=False
+    def __init__(self,window,directory,installer=None,resource_note=None):
+        self.window=window;self.directory=directory;self.installer=installer or install;self.events=queue.Queue();self.busy=False
         window.title('文案工坊 · 完整离线客户端');window.geometry('720x410');window.minsize(650,390)
         box=ttk.Frame(window,padding=26);box.pack(fill='both',expand=True)
         ttk.Label(box,text='完整离线客户端',font=('Microsoft YaHei UI',21,'bold')).pack(anchor='w')
         ttk.Label(box,text='安装及本地转写无需联网。AI 改写、链接解析和检查更新仍需联网。',wraplength=650).pack(anchor='w',pady=(9,20))
-        ttk.Label(box,text='请将全部分包和清单放在本程序旁边，然后选择安装位置。',wraplength=650).pack(anchor='w')
+        ttk.Label(box,text=resource_note or '请将全部分包和清单放在本程序旁边，然后选择安装位置。',wraplength=650).pack(anchor='w')
         row=ttk.Frame(box);row.pack(fill='x',pady=14)
         self.parent=tk.StringVar(value=str(Path.home()/'Documents/VideoCopyStudioOffline'))
         ttk.Entry(row,textvariable=self.parent).pack(side='left',fill='x',expand=True)
@@ -96,7 +96,7 @@ class Setup:
         parent=self.parent.get()
         self.busy=True;self.button.configure(state='disabled');self.progress.start(12)
         def worker():
-            try:self.events.put(('done',str(install(self.directory,parent,lambda message:self.events.put(('note',message))))))
+            try:self.events.put(('done',str(self.installer(self.directory,parent,lambda message:self.events.put(('note',message))))))
             except Exception as exc:self.events.put(('error',str(exc)))
         threading.Thread(target=worker,daemon=True).start()
 

@@ -18,23 +18,27 @@ AI 生成需要每位同事自己的兼容服务配置。模型返回的段落�
 
 ## 完整离线客户端
 
-[完整离线版下载页](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/v1.1.3) · [离线安装器](https://github.com/ASK-022/video-copy-studio-skill/releases/download/v1.1.3/VideoCopyStudio-Offline-Setup-v1.1.3.exe)
+[蓝奏云完整离线版](https://wwbny.lanzoue.com/b0067dcq7i) · 提取码：`91e6`
 
-下载离线安装器、`offline-downloads-v1.1.3.json` 和本版**全部** `VideoCopyStudio-Offline-v1.1.3-part*.zip`，放在同一文件夹。双击离线安装器选择位置，等待校验、解压完成，再点击“打开离线客户端”；以后双击解压目录中的 `VideoCopyStudio.exe` 即可。不需要另装 Python 或解压软件，安装和本地视频/音频转写无需联网。请预留约 12 GB 空间，不要混用不同版本的分包。
+[蓝奏云在线安装器](https://wwbny.lanzoue.com/b0067dcope) · 提取码：`5713`
 
-离线版随包提供独立 Python、CPU 推理依赖、Chromium、FFmpeg 和转写/标点/时间对齐/OCR 模型，按当前解压位置定位资源，不依赖原电脑的虚拟环境或模型路径。个人资料与 Key 保存在 `%LOCALAPPDATA%\VideoCopyStudioOffline`，与程序目录分开；更新离线版时复用该数据目录。AI 改写、公开链接解析、飞书写入和检查更新仍需要联网及使用者自己的服务配置。
+完整离线版约 2.4 GB，解压后约 4.6 GB，建议预留 12 GB。请下载目录内全部 **26 个 `data*.zip` 分包**和 `VideoCopyStudio-Lanzou-Offline-Setup-v1.1.3.exe`，保持原名放在同一文件夹。清单已内置，双击安装器后自动校验、合并和解压，不必逐个手工解压。以后双击解压目录的 `VideoCopyStudio.exe` 打开客户端。
 
-国内团队分发选择 **123 云盘普通文件夹分享**，GitHub Release 保留同名分包作为备用。网盘分享地址仅在实际登录、上传并创建分享后提供；这里不使用临时公共文件托管或未验证的下载地址。也可以把同一套文件放在公司共享盘或 U 盘交给同事。
+新电脑可先运行同目录的 `VC_redist.x64.exe`，按微软界面准备 C++ x64 运行库；已有更新版本可关闭该安装器。该文件来自[微软官方来源](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist)，已核验有效的 Microsoft Corporation 数字签名，可能要求管理员权限或重启。同目录提供 SHA256 校验表。
 
-离线构建已验证禁止外网连接时模型加载与真实音频转写，且搬移到含中文和空格的目录后仍能运行。离线安装器先验证所有分包的 SHA256，缺文件、校验不符或目标目录已存在时明确报错，不覆盖现有客户端目录。源码、原始第三方许可证和模型卡随包保留。
+独立 Python、CPU 推理依赖、Chromium、FFmpeg 和转写/标点/时间对齐/OCR 模型均已随包提供。安装和本地视频/音频转写无需联网；AI 改写、公开链接解析、飞书和检查更新仍需联网及自己的服务配置。个人资料与 Key 位于 `%LOCALAPPDATA%\VideoCopyStudioOffline`，与程序资源分开。
+
+蓝奏版按本次账号的小于 100 MB 上限分包，接收者输入提取码即可看到下载文件。[GitHub 程序与源码备用入口](https://github.com/ASK-022/video-copy-studio-skill/releases)提供安装器、校验和分发工具源码；完整离线资源统一从上方蓝奏链接获取。维护者原始大 ZIP 可用于 U 盘或共享盘分发，与蓝奏小分包及专用安装器不可混用。
+
+验证：46 项 Python 测试通过；蓝奏专用 EXE 界面与内置清单自检通过。实际从 26 个小 ZIP 安装到全新目录，并在禁止外网连接的测试进程中完成真实音频转写，记录到的外网连接尝试为 0；临时合并文件已自动清理。原始大包还验证过中文与空格目录搬移后的转写。
 
 ## 给同事的安装说明（可直接转发）
 
-请在 Windows 10/11 64 位电脑上，从[最新正式版](https://github.com/ASK-022/video-copy-studio-skill/releases/latest)下载 `VideoCopyStudio-Setup-v1.1.3.exe` 并双击，确认运行时目录后点击“安装 / 更新”；也可在 Windows PowerShell 执行下方的一条命令。无需预装 Git、Python 或模型，首次安装需保持联网并预留数 GB 空间，安装器会准备 Python、依赖、浏览器和转写模型，并做启动自检；必须等窗口显示“安装与自检完成”或终端显示安装成功，才算完整安装。完成后双击桌面 **Video Copy Studio** 打开本机页面，在右上角“设置”里填写自己的 AI 服务与 Key；本地转写不需要 AI Key。以后从桌面快捷方式打开，更新时先保存工作并等正在运行的任务完成，再打开“文案工坊安装管理器”点击“检查更新”，查看正式版说明后点击“安装 / 更新”；命令安装者可重跑同一命令，或下载 EXE 管理器；网页“设置”里也能检查版本并进入发布页。更新会保留个人资料、模型与 Key，旧服务不会被强制结束，更新后需正常关闭旧服务并重新打开；不便关闭时，可保存工作后重启电脑，再双击快捷方式。网络下载或自检失败时，安装会明确报错，可查看运行时目录的 `installer.log`（EXE）、`bootstrap.log`、`models.log` 或 `server.log`，修复后重跑；缺少浏览器时也可执行下方的 `studio.cmd repair-browser`。浏览器就绪不代表所有平台链接都能解析，遇到登录或平台访问限制，可改用本地视频文件。
+请在 Windows 10/11 64 位电脑上，从[蓝奏云在线版](https://wwbny.lanzoue.com/b0067dcope)（提取码 `5713`）下载 `VideoCopyStudio-Setup-v1.1.3.exe` 并双击，确认运行时目录后点击“安装 / 更新”；也可在 Windows PowerShell 执行下方的一条命令。无需预装 Git、Python 或模型，首次安装需保持联网并预留数 GB 空间，安装器会准备 Python、依赖、浏览器和转写模型，并做启动自检；必须等窗口显示“安装与自检完成”或终端显示安装成功，才算完整安装。完成后双击桌面 **Video Copy Studio** 打开本机页面，在右上角“设置”里填写自己的 AI 服务与 Key；本地转写不需要 AI Key。以后从桌面快捷方式打开，更新时先保存工作并等正在运行的任务完成，再打开“文案工坊安装管理器”点击“检查更新”，查看正式版说明后点击“安装 / 更新”；命令安装者可重跑同一命令，或下载 EXE 管理器；网页“设置”里也能检查版本并进入发布页。更新会保留个人资料、模型与 Key，旧服务不会被强制结束，更新后需正常关闭旧服务并重新打开；不便关闭时，可保存工作后重启电脑，再双击快捷方式。网络下载或自检失败时，安装会明确报错，可查看运行时目录的 `installer.log`（EXE）、`bootstrap.log`、`models.log` 或 `server.log`，修复后重跑；缺少浏览器时也可执行下方的 `studio.cmd repair-browser`。浏览器就绪不代表所有平台链接都能解析，遇到登录或平台访问限制，可改用本地视频文件。
 
 ## Windows EXE 安装与更新
 
-[下载 v1.1.3 EXE](https://github.com/ASK-022/video-copy-studio-skill/releases/download/v1.1.3/VideoCopyStudio-Setup-v1.1.3.exe) · [查看正式版与校验文件](https://github.com/ASK-022/video-copy-studio-skill/releases/latest)
+[蓝奏云下载在线安装器](https://wwbny.lanzoue.com/b0067dcope)（提取码 `5713`） · [查看正式版与校验文件](https://github.com/ASK-022/video-copy-studio-skill/releases/latest)
 
 EXE 内置本版应用源码安装包、图形界面、安装脚本、官方基础 Python 和固定提交的转写运行时源码；首次安装仍会联网下载模型及运行依赖。创作工作区继续在本机浏览器中使用，EXE 提供安装、启动、检查更新和日志入口。安装成功后会保留一份管理器到运行时目录，并创建“文案工坊安装管理器”桌面快捷方式。
 
@@ -57,7 +61,7 @@ v1.1.3 的在线安装按以下方式获取资源，设置仅对本次安装命�
 
 Python 镜像地址参考[清华镜像使用说明](https://mirror.tuna.tsinghua.edu.cn/help/pypi/)；浏览器镜像使用 [cnpm 维护者公布的 Playwright 配置](https://github.com/cnpm/binary-mirror-config/blob/master/package.json)。如果设置过 `PLAYWRIGHT_DOWNLOAD_HOST`，浏览器会先尝试该自定义源，再使用默认回退线路。
 
-EXE 仍属于在线安装器，不包含模型、PyTorch 或浏览器二进制。获取 EXE、检查更新和联网升级目前仍使用 GitHub；无法访问 GitHub 时，可由同事转发本版 EXE，再从内置安装包开始安装。不同单位网络、运营商和镜像同步状态可能不同，不能保证所有电脑都无需代理；所有源失败时明确保留错误和日志，不报告安装完成。
+EXE 仍属于在线安装器，不包含模型、PyTorch 或浏览器二进制。EXE 可从上方蓝奏云链接获取；自动检查更新和联网升级仍读取 GitHub。GitHub 不可达时，可手动从蓝奏目录获取新版安装器，已安装程序可继续在本机使用。不同单位网络、运营商和镜像同步状态可能不同，不能保证所有电脑都无需代理；所有源失败时明确保留错误和日志，不报告安装完成。
 
 ## 一条命令安装
 
@@ -213,4 +217,10 @@ python scripts/update_skill.py --apply
 
 使用已通过安装与模型自检的 Windows x64 运行时：`python scripts/build_offline_client.py stage --source RUNTIME_HOME --work BUILD_DIR --output OUTPUT_DIR`。构建器仅收集公开应用源码、依赖和模型资源，排除个人资料、Key、任务和日志；使用独立基础 Python，不分发带绝对路径的虚拟环境。
 
+发布给全新 Windows 电脑时，还需从微软官方来源获取原版 `VC_redist.x64.exe`，核验有效的 Microsoft Corporation 数字签名，为文件生成 SHA256，并与客户端分包放在同一下载目录。用户在需要时通过微软界面准备系统 C++ 运行库；`stage/package` 只生成应用资源，不安装或修改系统组件。
+
 在禁止外网连接的测试进程中，验证首次启动、全部模型、本地音频转写以及搬移后的再次转写；将验收结果写入 `BUILD_DIR/offline-verified.json`，其中 `verified=true`、`external_attempts=0`、`client_sha256` 为客户端 EXE 的 SHA256。随后运行 `python scripts/build_offline_client.py package --work BUILD_DIR --output OUTPUT_DIR`，输出独立 ZIP 分包、清单、校验文件和离线安装器。分包均小于 GitHub 每附件 2 GiB 上限，安装器不需要联网或额外解压软件。
+
+### 维护者构建蓝奏云小分包
+
+先准备已验收的原始离线包，再运行 `python scripts/build_lanzou_package.py --input ORIGINAL_OFFLINE_DIR --output LANZOU_OUTPUT_DIR --work LANZOU_BUILD_DIR`。工具对原始 ZIP 做小于 100 MB 的标准 ZIP 包装，原始应用与模型内容不变；专用安装器内置清单，合并后再次核对原始 SHA256。发布前必须验证实际 EXE 的合并安装和禁止外网时的真实转写。

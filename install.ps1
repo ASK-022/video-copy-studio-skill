@@ -158,6 +158,7 @@ try {
             & $vcsPython (Join-Path $vcsPrimary 'scripts/bootstrap.py') @runtimeArguments --install --download-ffmpeg
         }
         if ($LASTEXITCODE -ne 0) { throw 'Runtime or model preparation failed. See bootstrap.log / models.log. Installation is incomplete; fix the error and rerun.' }
+        if ($doctor.data.service.ok) { Write-Warning 'An existing studio service was left running. Close it normally, then reopen the Desktop shortcut to use the updated code and browser path.' }
         $saved = Get-Content -LiteralPath (Join-Path $vcsRuntimeRoot 'runtime.json') -Raw -Encoding UTF8 | ConvertFrom-Json
         $vcsShell = New-Object -ComObject WScript.Shell
         foreach ($folder in @([Environment]::GetFolderPath('Desktop'),[Environment]::GetFolderPath('Programs'))) {
@@ -180,7 +181,7 @@ try {
         $verificationText = & $vcsPython (Join-Path $vcsPrimary 'scripts/studio_agent.py') @runtimeArguments doctor
         if ($LASTEXITCODE -ne 0) { throw 'Final readiness check failed.' }
         $verification = ($verificationText -join "`n") | ConvertFrom-Json
-        if (-not ($verification.data.models_ready -and $verification.data.service.ok -and $verification.data.service.asr_ready)) { throw 'Final readiness check failed: models or service are not ready.' }
+        if (-not ($verification.data.browser_ready -and $verification.data.models_ready -and $verification.data.service.ok -and $verification.data.service.asr_ready)) { throw 'Final readiness check failed: browser, models or service are not ready. See bootstrap.log / models.log / server.log.' }
         Write-Host ('Web: ' + $verification.data.service_url + '/')
         Write-Host ('Reopen: double-click Video Copy Studio on Desktop, or ' + (Join-Path $vcsRuntimeRoot '打开文案工坊.cmd'))
     } else { Write-Host '[3/4] Runtime setup skipped (-SkillOnly).'; Write-Host '[4/4] Skill installation complete.' }

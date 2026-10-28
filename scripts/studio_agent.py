@@ -16,6 +16,7 @@ import webbrowser
 
 from bootstrap import SKILL,home
 from prepare_models import model_status
+from browser_setup import browser_status,repair_browser
 
 
 def settings(root):
@@ -141,17 +142,21 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--runtime-home',type=Path,default=home());parser.add_argument('--base-url')
     sub=parser.add_subparsers(dest='command',required=True)
-    sub.add_parser('doctor');start=sub.add_parser('start');start.add_argument('--open',action='store_true')
+    sub.add_parser('doctor');sub.add_parser('repair-browser');start=sub.add_parser('start');start.add_argument('--open',action='store_true')
     call=sub.add_parser('invoke');call.add_argument('--request',type=Path,required=True)
     wait=sub.add_parser('wait');wait.add_argument('--job-id',required=True);wait.add_argument('--timeout',type=float,default=30)
     args=parser.parse_args();root=args.runtime_home.resolve()
     config=json.loads((root/'runtime.json').read_text(encoding='utf-8')) if (root/'runtime.json').exists() else {}
     url=args.base_url or f'http://127.0.0.1:{config.get("port",8777)}'
+    if args.command=='repair-browser':
+        try:return repair_browser(root,settings(root))
+        except RuntimeError as exc:raise ValueError(str(exc)) from exc
     if args.command=='doctor':
         try:service=Studio(url).request('/health')
         except Exception:service=None
         return {'skill_version':(SKILL/'VERSION').read_text().strip(),'windows_runtime_supported':os.name=='nt','runtime_registered':bool(config),
                 'service_url':url,'service':service,'models_ready':model_status(root/'models-ready.json',config.get('model_cache')),
+                'browser_ready':browser_status(config.get('python'),config.get('browser_path')),
                 'launcher':str(root/'打开文案工坊.cmd'),'model_weights_in_zip':False,'credentials_in_zip':False}
     if args.command=='start':
         config=settings(root)
@@ -164,6 +169,8 @@ def main():
                 FFMPEG_PATH=config['ffmpeg'],COPY_STUDIO_PORT=str(parsed.port or 8777),COPY_STUDIO_DATA=config['data_dir'],PYTHONIOENCODING='utf-8')
             if config.get('model_cache'):
                 env.update(MODELSCOPE_CACHE=config['model_cache'],MODEL_CACHE_DIR=config['model_cache'])
+            if config.get('browser_path'):
+                env['PLAYWRIGHT_BROWSERS_PATH']=config['browser_path']
             env['PATH']=str(Path(config['ffmpeg']).parent)+os.pathsep+env.get('PATH','')
             root.mkdir(parents=True,exist_ok=True)
             with (root/'server.log').open('ab') as log:

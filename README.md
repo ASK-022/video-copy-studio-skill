@@ -25,6 +25,21 @@ irm https://raw.githubusercontent.com/ASK-022/video-copy-studio-skill/main/insta
 
 首次安装会下载较大依赖与模型，请保持网络连接并预留数 GB 空间；终端显示完成才表示成功。网络失败、模型加载失败或端口被无关程序占用时，会明确报错并停止，可修复后重跑同一命令，不把部分安装报告为完成。
 
+### 公开链接提示缺少 Playwright / Chromium
+
+v1.0.4 起，新装和升级都使用**运行时登记的同一个 Python** 检查 Playwright，缺包时自动补装，再下载 Chromium 并实际启动、关闭一次。浏览器保存在运行时目录的 `browsers/`，启动服务时使用同一路径，不依赖其他 Python 环境或系统 Chrome。`doctor` 的 `browser_ready` 为实际启动自检结果。
+
+先重跑上方一条命令升级。已升级且注册过运行时，仅需修复浏览器时，在 PowerShell 执行（自定义目录请替换路径）：
+
+```powershell
+& "$env:LOCALAPPDATA\VideoCopyStudio\studio.cmd" repair-browser
+& "$env:LOCALAPPDATA\VideoCopyStudio\studio.cmd" doctor
+```
+
+修复命令会联网下载；出现 `browser_ready: true` 才表示浏览器可启动。下载超时或失败时，查看 `%LOCALAPPDATA%\VideoCopyStudio\bootstrap.log` 中的完整错误，确认网络可访问 Playwright 下载服务后重跑同一命令。首次安装失败、还没有 `studio.cmd` 时，直接重跑一条命令安装。
+
+升级或修复前已运行的服务需要先正常关闭，再用桌面快捷方式重新打开，使新代码和浏览器路径生效。自检仅确认本机浏览器能运行；链接解析仍受平台页面、登录要求及访问限制影响。
+
 ## 打开 Web 客户端
 
 - **第一次**：安装成功自动打开，默认地址是 [http://127.0.0.1:8777/](http://127.0.0.1:8777/)。

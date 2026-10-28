@@ -11,6 +11,7 @@ import tempfile
 import urllib.request
 import zipfile
 from prepare_models import model_status
+from browser_setup import prepare_browser
 
 SKILL=Path(__file__).resolve().parents[1]
 UPSTREAM='https://codeload.github.com/Acclerate/video-transcriber/zip/bfce75fb1d9cf3e8444d531a4f96ec49faa467cf'
@@ -150,16 +151,9 @@ def main():
                 print('正在安装依赖，日志：'+str(log),file=sys.stderr,flush=True)
                 result=subprocess.run(command,stdout=output,stderr=output,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
                 if result.returncode:raise RuntimeError('依赖安装失败，查看 bootstrap.log；修复网络后可重跑安装，现有数据保留。')
+    browser_path=previous.get('browser_path')
     if args.install or args.prepare_models:
-        # Also prepare this browser when upgrading an older registered runtime.
-        with (root/'bootstrap.log').open('a',encoding='utf-8') as output:
-            print('正在准备公开链接所用的独立 Chromium 浏览器…',file=sys.stderr,flush=True)
-            result=subprocess.run([str(python),'-m','playwright','install','chromium'],stdout=output,stderr=output,
-                                  creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
-            if result.returncode:raise RuntimeError('Chromium 下载失败，查看 bootstrap.log；安装未完成。')
-            probe='from playwright.sync_api import sync_playwright\nwith sync_playwright() as p:\n b=p.chromium.launch(headless=True); b.close()\n'
-            result=subprocess.run([str(python),'-c',probe],stdout=output,stderr=output,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
-            if result.returncode:raise RuntimeError('Chromium 启动自检失败，查看 bootstrap.log；安装未完成。')
+        browser_path=prepare_browser(root,python,browser_path)
     if not python.is_file() or not (asr/'webmain.py').exists():raise RuntimeError('转写程序或 Python 路径无效。')
     if args.install or args.prepare_models:
         patch_runtime(asr)
@@ -177,6 +171,7 @@ def main():
     data_dir=(args.data_dir or Path(previous.get('data_dir',str(root/'data')))).resolve()
     data={'python':str(python),'asr_root':str(asr),'ffmpeg':ffmpeg,'port':args.port,'data_dir':str(data_dir),
           'model_cache':str(model_cache),'launcher':str(launcher),'pythonw':str(pythonw)}
+    if browser_path:data['browser_path']=browser_path
     temp=config.with_suffix('.tmp');temp.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf-8');temp.replace(config)
     print(json.dumps({'ok':True,'runtime_config':str(config),'runtime_home':str(root),
         'models_ready':model_status(root/'models-ready.json',model_cache),'web_url':f'http://127.0.0.1:{args.port}/',

@@ -3,6 +3,23 @@ import os
 from pathlib import Path
 
 
+def offline_model_path(value):
+    """Resolve only packaged local models when the offline launcher enables this mode."""
+    root=os.environ.get('VIDEO_COPY_STUDIO_OFFLINE_MODELS')
+    if not root:return value
+    models={
+        'iic/SenseVoiceSmall':'sensevoice',
+        'damo/punc_ct-transformer_zh-cn-common-vocab272727-pytorch':'punctuation',
+        'iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch':'punctuation',
+        'fa-zh':'alignment',
+        'iic/speech_timestamp_prediction-v1-16k-offline':'alignment',
+    }
+    if value not in models:raise ValueError('离线客户端未包含所需模型：'+str(value))
+    path=Path(root)/models[value]
+    if not (path/'model.pt').is_file() or not (path/'config.yaml').is_file():raise FileNotFoundError('离线模型文件缺失：'+str(path))
+    return str(path.resolve())
+
+
 def fix_sentencepiece_paths():
     if os.name != 'nt':
         return

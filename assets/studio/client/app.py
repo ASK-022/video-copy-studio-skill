@@ -306,6 +306,7 @@ def ai_work(job_id, operation, data, client):
 
 
 app = FastAPI(title='文案工坊', docs_url=None,redoc_url=None,openapi_url=None)
+SERVER = None
 
 
 @app.middleware('http')
@@ -341,13 +342,28 @@ def index():
 @app.get('/api/health')
 def health():
     with LOCK:active=sum(r['status'] in ('queued','working') for r in MATERIAL_IMPORTS.values())
-    return {'ok':True,'asr_ready':PYTHON.exists(),'ai_configured':bool(load_config().get('encrypted_key')),'product_imports_active':active}
+    return {'ok':True,'asr_ready':PYTHON.exists(),'ai_configured':bool(load_config().get('encrypted_key')),'product_imports_active':active,
+            'instance':os.environ.get('COPY_STUDIO_INSTANCE',''),'offline_resources':bool(os.environ.get('VIDEO_COPY_STUDIO_OFFLINE_MODELS'))}
 
 
 @app.get('/api/updates')
 def updates():
     try:return check_update(local_version())
     except ValueError as exc:raise HTTPException(503,str(exc)) from exc
+
+
+@app.post('/api/client/close')
+def close_offline_client(data:dict):
+    instance=os.environ.get('COPY_STUDIO_INSTANCE','')
+    if not instance or not os.environ.get('VIDEO_COPY_STUDIO_OFFLINE_MODELS'):raise HTTPException(404,'此入口仅供离线客户端使用。')
+    if data.get('instance')!=instance:raise HTTPException(403,'客户端实例不匹配。')
+    with LOCK:
+        if any(item.get('status') in ('queued','working') for item in JOBS.values()) or any(item.get('status') in ('queued','working') for item in MATERIAL_IMPORTS.values()):
+            raise HTTPException(409,'仍有任务正在处理，完成后再退出或切换客户端。')
+    if SERVER is None:raise HTTPException(409,'当前服务无法自动退出。')
+    def stop():SERVER.should_exit=True
+    threading.Timer(.3,stop).start()
+    return {'ok':True}
 
 
 @app.get('/api/settings')
@@ -1467,4 +1483,5 @@ app.mount('/static',StaticFiles(directory=Path(__file__).parent/'web'),name='sta
 
 if __name__=='__main__':
     import uvicorn
-    uvicorn.run(app,host='127.0.0.1',port=PORT,access_log=False)
+    SERVER=uvicorn.Server(uvicorn.Config(app,host='127.0.0.1',port=PORT,access_log=False))
+    SERVER.run()

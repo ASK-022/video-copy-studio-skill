@@ -2,7 +2,7 @@
 
 视频/音频或公开链接 → 本地转写；脚本文档或粘贴原文 → 本机读取。两种入口均可分析结构，生成同商品裂变/换商品文案，汇总为 TXT、Excel 或写入指定飞书电子表格。
 
-**v1.1.2** 新增国内下载源自动回退、内置基础 Python 与转写源码，保留 Windows EXE 安装管理器和更新检查，沿用 v1.1.0 的功能：提供并列的「视频创作」和「脚本改写」分区，支持脚本文档多选/拖拽上传、商品资料提取、成稿版本、逐段对照、商品库、定向裂变与单条重写。完整 Agent 参数见 [references/parameters.md](references/parameters.md)。
+**v1.1.3** 新增完整离线客户端及可校验分包，保留国内下载源自动回退、内置基础 Python 与转写源码，保留 Windows EXE 安装管理器和更新检查，沿用 v1.1.0 的功能：提供并列的「视频创作」和「脚本改写」分区，支持脚本文档多选/拖拽上传、商品资料提取、成稿版本、逐段对照、商品库、定向裂变与单条重写。完整 Agent 参数见 [references/parameters.md](references/parameters.md)。
 
 ## v1.1.0 的使用方式
 
@@ -14,25 +14,37 @@
 
 AI 生成需要每位同事自己的兼容服务配置。模型返回的段落或商品事实不符合校验时，该轮会停止，已完成文案保留；只有实际完成的条数才算生成成功。扫描识别和复杂 PDF 排版需对照原文件核对。
 
-完整本地运行时支持 **Windows 10/11 64 位（x64）**。首次在线安装会自动准备 Python、依赖和模型；发布 ZIP 不包含大模型，不是离线安装包。Agent 需要执行本机命令的能力；纯聊天或远程云 Agent 无法直接访问用户桌面文件。
+完整本地运行时支持 **Windows 10/11 64 位（x64）**。首次在线安装会自动准备 Python、依赖和模型；Agent Skill ZIP 不包含大模型；完整离线客户端使用上方的独立资源分包。Agent 需要执行本机命令的能力；纯聊天或远程云 Agent 无法直接访问用户桌面文件。
+
+## 完整离线客户端
+
+[完整离线版下载页](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/v1.1.3) · [离线安装器](https://github.com/ASK-022/video-copy-studio-skill/releases/download/v1.1.3/VideoCopyStudio-Offline-Setup-v1.1.3.exe)
+
+下载离线安装器、`offline-downloads-v1.1.3.json` 和本版**全部** `VideoCopyStudio-Offline-v1.1.3-part*.zip`，放在同一文件夹。双击离线安装器选择位置，等待校验、解压完成，再点击“打开离线客户端”；以后双击解压目录中的 `VideoCopyStudio.exe` 即可。不需要另装 Python 或解压软件，安装和本地视频/音频转写无需联网。请预留约 12 GB 空间，不要混用不同版本的分包。
+
+离线版随包提供独立 Python、CPU 推理依赖、Chromium、FFmpeg 和转写/标点/时间对齐/OCR 模型，按当前解压位置定位资源，不依赖原电脑的虚拟环境或模型路径。个人资料与 Key 保存在 `%LOCALAPPDATA%\VideoCopyStudioOffline`，与程序目录分开；更新离线版时复用该数据目录。AI 改写、公开链接解析、飞书写入和检查更新仍需要联网及使用者自己的服务配置。
+
+国内团队分发选择 **123 云盘普通文件夹分享**，GitHub Release 保留同名分包作为备用。网盘分享地址仅在实际登录、上传并创建分享后提供；这里不使用临时公共文件托管或未验证的下载地址。也可以把同一套文件放在公司共享盘或 U 盘交给同事。
+
+离线构建已验证禁止外网连接时模型加载与真实音频转写，且搬移到含中文和空格的目录后仍能运行。离线安装器先验证所有分包的 SHA256，缺文件、校验不符或目标目录已存在时明确报错，不覆盖现有客户端目录。源码、原始第三方许可证和模型卡随包保留。
 
 ## 给同事的安装说明（可直接转发）
 
-请在 Windows 10/11 64 位电脑上，从[最新正式版](https://github.com/ASK-022/video-copy-studio-skill/releases/latest)下载 `VideoCopyStudio-Setup-v1.1.2.exe` 并双击，确认运行时目录后点击“安装 / 更新”；也可在 Windows PowerShell 执行下方的一条命令。无需预装 Git、Python 或模型，首次安装需保持联网并预留数 GB 空间，安装器会准备 Python、依赖、浏览器和转写模型，并做启动自检；必须等窗口显示“安装与自检完成”或终端显示安装成功，才算完整安装。完成后双击桌面 **Video Copy Studio** 打开本机页面，在右上角“设置”里填写自己的 AI 服务与 Key；本地转写不需要 AI Key。以后从桌面快捷方式打开，更新时先保存工作并等正在运行的任务完成，再打开“文案工坊安装管理器”点击“检查更新”，查看正式版说明后点击“安装 / 更新”；命令安装者可重跑同一命令，或下载 EXE 管理器；网页“设置”里也能检查版本并进入发布页。更新会保留个人资料、模型与 Key，旧服务不会被强制结束，更新后需正常关闭旧服务并重新打开；不便关闭时，可保存工作后重启电脑，再双击快捷方式。网络下载或自检失败时，安装会明确报错，可查看运行时目录的 `installer.log`（EXE）、`bootstrap.log`、`models.log` 或 `server.log`，修复后重跑；缺少浏览器时也可执行下方的 `studio.cmd repair-browser`。浏览器就绪不代表所有平台链接都能解析，遇到登录或平台访问限制，可改用本地视频文件。
+请在 Windows 10/11 64 位电脑上，从[最新正式版](https://github.com/ASK-022/video-copy-studio-skill/releases/latest)下载 `VideoCopyStudio-Setup-v1.1.3.exe` 并双击，确认运行时目录后点击“安装 / 更新”；也可在 Windows PowerShell 执行下方的一条命令。无需预装 Git、Python 或模型，首次安装需保持联网并预留数 GB 空间，安装器会准备 Python、依赖、浏览器和转写模型，并做启动自检；必须等窗口显示“安装与自检完成”或终端显示安装成功，才算完整安装。完成后双击桌面 **Video Copy Studio** 打开本机页面，在右上角“设置”里填写自己的 AI 服务与 Key；本地转写不需要 AI Key。以后从桌面快捷方式打开，更新时先保存工作并等正在运行的任务完成，再打开“文案工坊安装管理器”点击“检查更新”，查看正式版说明后点击“安装 / 更新”；命令安装者可重跑同一命令，或下载 EXE 管理器；网页“设置”里也能检查版本并进入发布页。更新会保留个人资料、模型与 Key，旧服务不会被强制结束，更新后需正常关闭旧服务并重新打开；不便关闭时，可保存工作后重启电脑，再双击快捷方式。网络下载或自检失败时，安装会明确报错，可查看运行时目录的 `installer.log`（EXE）、`bootstrap.log`、`models.log` 或 `server.log`，修复后重跑；缺少浏览器时也可执行下方的 `studio.cmd repair-browser`。浏览器就绪不代表所有平台链接都能解析，遇到登录或平台访问限制，可改用本地视频文件。
 
 ## Windows EXE 安装与更新
 
-[下载 v1.1.2 EXE](https://github.com/ASK-022/video-copy-studio-skill/releases/download/v1.1.2/VideoCopyStudio-Setup-v1.1.2.exe) · [查看正式版与校验文件](https://github.com/ASK-022/video-copy-studio-skill/releases/latest)
+[下载 v1.1.3 EXE](https://github.com/ASK-022/video-copy-studio-skill/releases/download/v1.1.3/VideoCopyStudio-Setup-v1.1.3.exe) · [查看正式版与校验文件](https://github.com/ASK-022/video-copy-studio-skill/releases/latest)
 
 EXE 内置本版应用源码安装包、图形界面、安装脚本、官方基础 Python 和固定提交的转写运行时源码；首次安装仍会联网下载模型及运行依赖。创作工作区继续在本机浏览器中使用，EXE 提供安装、启动、检查更新和日志入口。安装成功后会保留一份管理器到运行时目录，并创建“文案工坊安装管理器”桌面快捷方式。
 
 管理器打开时自动做一次只读版本检查，也可手动点击“检查更新”；网页“设置”里的检查为手动触发。检查仅请求本仓库的公开 GitHub Release 信息，不发送素材、脚本或 Key；只接受正式版，按数字比较版本，不主动降级。发现新版后由用户点击安装，下载 ZIP 后核验 SHA256，并执行依赖、浏览器、模型及服务自检，不会在创作期间静默覆盖程序。管理器自身如有新版 EXE，可从发布页下载并使用；已打开的旧管理器不会被原地替换。网络断开或 GitHub 限流时可继续使用已安装的本机程序。
 
-当前 EXE 未做代码签名，同页提供 `.exe.sha256`。可在 PowerShell 用 `Get-FileHash .\VideoCopyStudio-Setup-v1.1.2.exe -Algorithm SHA256` 对照校验；受单位软件策略限制时，请按单位要求安装。默认运行时位于 `%LOCALAPPDATA%\VideoCopyStudio`，与 GitHub 源码和个人 Agent 技能目录分开。
+当前 EXE 未做代码签名，同页提供 `.exe.sha256`。可在 PowerShell 用 `Get-FileHash .\VideoCopyStudio-Setup-v1.1.3.exe -Algorithm SHA256` 对照校验；受单位软件策略限制时，请按单位要求安装。默认运行时位于 `%LOCALAPPDATA%\VideoCopyStudio`，与 GitHub 源码和个人 Agent 技能目录分开。
 
 ## 下载线路与无代理安装
 
-v1.1.2 的在线安装按以下方式获取资源，设置仅对本次安装命令生效，不修改全局 pip 配置，不关闭 HTTPS 证书检查：
+v1.1.3 的在线安装按以下方式获取资源，设置仅对本次安装命令生效，不修改全局 pip 配置，不关闭 HTTPS 证书检查：
 
 | 资源 | 首选 | 失败后的处理 |
 |---|---|---|
@@ -112,7 +124,7 @@ Agent 无需依赖系统 PATH 中的 `python`，默认安装后的 CLI 入口为
 
 下载线路默认国内镜像优先，失败后逐个回退；日志会显示正在使用的下载源。
 
-安装器参数：`-Agent auto/codex/claude/openclaw/custom`；自定义目录配合 `-SkillsDir`；`-SkillOnly` 只装技能、不下载运行时；`-NoOpen` 不打开浏览器；`-Python` 指定已有 Python；`-RuntimeHome` 指定独立运行时目录；`-ReleaseTag v1.1.2` 指定正式版；`-PackagePath` 从带相邻 SHA256 文件的本地 ZIP 安装。`-Port` 指定全新运行时的端口；`-NoShortcuts` 用于独立验证时不创建个人快捷方式。升级不复制、清除或共享个人 Key 和素材。
+安装器参数：`-Agent auto/codex/claude/openclaw/custom`；自定义目录配合 `-SkillsDir`；`-SkillOnly` 只装技能、不下载运行时；`-NoOpen` 不打开浏览器；`-Python` 指定已有 Python；`-RuntimeHome` 指定独立运行时目录；`-ReleaseTag v1.1.3` 指定正式版；`-PackagePath` 从带相邻 SHA256 文件的本地 ZIP 安装。`-Port` 指定全新运行时的端口；`-NoShortcuts` 用于独立验证时不创建个人快捷方式。升级不复制、清除或共享个人 Key 和素材。
 
 ## 手动安装到 Agent
 
@@ -196,3 +208,9 @@ python scripts/update_skill.py --apply
 ### 维护者构建 Windows EXE
 
 在 Windows x64 Python 环境安装 `pyinstaller>=6,<7`，运行 `python scripts/build_windows_exe.py --output dist`。脚本先生成白名单 ZIP，再打包 GUI、Python/Tk、安装脚本和本版 ZIP，输出 EXE 及 `.exe.sha256`。ZIP 不含 EXE，模型和个人数据均不进入发布包。Release 应同时上传 ZIP、EXE 和各自的 SHA256 文件。
+
+### 维护者构建完整离线客户端
+
+使用已通过安装与模型自检的 Windows x64 运行时：`python scripts/build_offline_client.py stage --source RUNTIME_HOME --work BUILD_DIR --output OUTPUT_DIR`。构建器仅收集公开应用源码、依赖和模型资源，排除个人资料、Key、任务和日志；使用独立基础 Python，不分发带绝对路径的虚拟环境。
+
+在禁止外网连接的测试进程中，验证首次启动、全部模型、本地音频转写以及搬移后的再次转写；将验收结果写入 `BUILD_DIR/offline-verified.json`，其中 `verified=true`、`external_attempts=0`、`client_sha256` 为客户端 EXE 的 SHA256。随后运行 `python scripts/build_offline_client.py package --work BUILD_DIR --output OUTPUT_DIR`，输出独立 ZIP 分包、清单、校验文件和离线安装器。分包均小于 GitHub 每附件 2 GiB 上限，安装器不需要联网或额外解压软件。

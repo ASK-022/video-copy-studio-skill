@@ -2,7 +2,7 @@
 
 [下载完整桌面安装包](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.1.0) · [安装、资源准备与更新说明](references/contenthub-desktop.md)
 
-[蓝奏云完整桌面版下载](https://wwbny.lanzoue.com/b0067df0cf)，提取码 `6s7g`。下载全部 6 个 ZIP 分包和安装助手，无需手动解压；助手校验后打开自选目录安装向导。
+[蓝奏云完整桌面版下载](https://wwbny.lanzoue.com/b0067df0cf)，提取码 `6s7g`。GitHub 和蓝奏云都下载全部 6 个 ZIP 分包与 `ContentHub-Install-v1.1.0.exe`，放在同一文件夹；无需手动解压，助手校验后打开自选目录安装向导。
 
 标准 EXE 安装向导可自选目录。顶部“检查更新”下载签名程序增量后，点击“更新并重启”；新版必须通过双工作台启动检查，失败自动恢复旧版和资料元数据。资料、加密 Key、项目与模型独立保存，已有模型直接复用。首次资源下载已在 Windows 全新目录中以无代理、无 pip 缓存方式验收，并完成实际转写。
 

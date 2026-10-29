@@ -1,8 +1,7 @@
 内容中台完整桌面版 v1.1.0（编导台＋剪辑台，Windows x64）
 
 一、安装
-GitHub 用户下载 ContentHub-Setup-v1.1.0-x64.exe，双击后选择安装目录并安装。
-蓝奏云用户下载同一文件夹中的全部 6 个 ZIP 分包与 ContentHub-Install-v1.1.0.exe，放在同一目录后双击安装助手；无需解压或手动拼接。助手逐包核验 SHA256，重组标准 EXE 并打开安装向导，仍可自选安装目录。
+GitHub 与蓝奏云均下载全部 6 个 ContentHub-v1.1.0-Install-01.zip 至 -06.zip 分包和 ContentHub-Install-v1.1.0.exe，放在同一文件夹后双击安装助手。无需手动解压或拼接；助手逐包校验 SHA256，生成 ContentHub-Setup-v1.1.0-x64.exe 并打开可自选安装目录的标准安装向导。分包内是完整桌面安装器，与本地完整安装器功能相同。
 无需自己安装 Git、Node.js 或系统 Python。当前发行包未附 Windows 代码签名；发布清单使用独立的 RSA-3072 签名，更新包另作 SHA256 校验。
 
 二、首次转写资源与已有模型

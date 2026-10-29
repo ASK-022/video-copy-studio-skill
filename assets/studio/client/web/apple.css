@@ -50,3 +50,4 @@ body{padding-left:0}.topbar{margin-left:0}.workspace{display:grid;grid-template-
 #table-dialog .unified-settings-head{position:sticky;top:0;right:auto;z-index:2;justify-content:space-between;align-items:center;padding:14px 24px;background:#fff;border-bottom:1px solid #eee}#table-dialog .unified-settings-head strong{display:block;font-size:16px}#table-dialog .unified-settings-head button{font-size:18px}
 
 #table-dialog .unified-settings-head{display:flex;flex-direction:row}#table-dialog .unified-settings-head button{margin-left:auto}#table-dialog .table-dialog-body>.dialog-actions{bottom:0;padding-bottom:4px}
+#updates-notes{white-space:pre-wrap;font:inherit;max-height:240px;overflow:auto}

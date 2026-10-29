@@ -1,3 +1,17 @@
+## v1.2.0 客户端更新与回滚
+
+[蓝奏云 v1.2.0 升级与在线安装器](https://wwbny.lanzoue.com/b0067dem1a)，提取码 `1d0o`。
+
+已有完整离线版 v1.1.3：下载本次 `VideoCopyStudio-Upgrade-v1.2.0.exe`，先关闭客户端，选择含 `VideoCopyStudio.exe` 的原安装目录，再点「升级并打开」。无需重新下载资源分包。此升级器自带程序增量，执行升级本身无需联网。
+
+升级后进入「设置 → 检查更新 → 一键更新并重启」。客户端先验证发布签名，下载约 10MB 的程序增量并核验 SHA256，再关闭自身、保留旧程序、切换新版并验证服务启动；失败恢复旧版，意外中断则下次启动时恢复。转写、AI、商品资料提取或资料保存仍在进行时拒绝更新。页面尚未提交的编辑请先保存。
+
+更新只替换 `App`、启动 EXE 和程序版本描述，复用 `Runtime`、`Models`、`Engine`、`Browsers`、`FFmpeg`。个人资料和加密 Key 保留在 `%LOCALAPPDATA%\VideoCopyStudioOffline`。不迁移数据格式；以后依赖变化不满足资源契约时必须使用新完整包，不能强行套用增量。自定义资料目录可通过升级器 `--data-dir` 指定。旧程序备份保留在安装目录 `.updates` 下，日志在资料目录 `updates/updater.log`。
+
+版本清单镜像为 [Fastly CDN](https://fastly.jsdelivr.net/gh/ASK-022/video-copy-studio-skill@main/releases/latest.json) 和 [备用 CDN](https://gcore.jsdelivr.net/gh/ASK-022/video-copy-studio-skill@main/releases/latest.json)，并回退 GitHub；取签名有效的最高版本。两条线路在本次无代理请求中验证可用，均为 CDN 备用线路，不保证所有运营商实时可达。清单与增量包固定来自本仓库，镜像内容必须通过内置发布公钥校验。发布私钥不进入仓库或客户端。
+
+新电脑仍先用下方 v1.1.3 完整离线资源包安装，再运行 v1.2.0 升级器；26个资源分包保持原名。在线安装器另提供 v1.2.0，新装或更新时继续复用已准备的模型；客户端内自动切换功能目前适用于完整离线客户端。在线版通过安装管理器升级。
+
 # 文案工坊 · Agent Skill
 
 视频/音频或公开链接 → 本地转写；脚本文档或粘贴原文 → 本机读取。两种入口均可分析结构，生成同商品裂变/换商品文案，汇总为 TXT、Excel 或写入指定飞书电子表格。
@@ -61,7 +75,7 @@ v1.1.3 的在线安装按以下方式获取资源，设置仅对本次安装命�
 
 Python 镜像地址参考[清华镜像使用说明](https://mirror.tuna.tsinghua.edu.cn/help/pypi/)；浏览器镜像使用 [cnpm 维护者公布的 Playwright 配置](https://github.com/cnpm/binary-mirror-config/blob/master/package.json)。如果设置过 `PLAYWRIGHT_DOWNLOAD_HOST`，浏览器会先尝试该自定义源，再使用默认回退线路。
 
-EXE 仍属于在线安装器，不包含模型、PyTorch 或浏览器二进制。EXE 可从上方蓝奏云链接获取；自动检查更新和联网升级仍读取 GitHub。GitHub 不可达时，可手动从蓝奏目录获取新版安装器，已安装程序可继续在本机使用。不同单位网络、运营商和镜像同步状态可能不同，不能保证所有电脑都无需代理；所有源失败时明确保留错误和日志，不报告安装完成。
+EXE 仍属于在线安装器，不包含模型、PyTorch 或浏览器二进制。EXE 可从上方蓝奏云链接获取；在线安装器仍可通过 GitHub 获取正式版；完整离线客户端 v1.2.0 增加签名版本清单 CDN 镜像和程序增量更新。GitHub 不可达时，可手动从蓝奏目录获取新版安装器，已安装程序可继续在本机使用。不同单位网络、运营商和镜像同步状态可能不同，不能保证所有电脑都无需代理；所有源失败时明确保留错误和日志，不报告安装完成。
 
 ## 一条命令安装
 

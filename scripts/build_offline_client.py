@@ -14,7 +14,7 @@ from prepare_models import model_status
 
 ROOT=Path(__file__).resolve().parents[1]
 VERSION=(ROOT/'VERSION').read_text().strip()
-SKIP={'.git','.venv','__pycache__','dist','.studio','.links'}
+SKIP={'.git','.venv','__pycache__','dist','.studio','.links','releases'}
 
 
 def digest(path):
@@ -32,7 +32,7 @@ def copy_tree(source,target):
 def freeze(entry,name,output,work):
     subprocess.run([sys.executable,'-m','PyInstaller','--noconfirm','--clean','--onefile','--windowed','--noupx',
         '--name',name,'--distpath',str(output),'--workpath',str(work/name),'--specpath',str(work),
-        '--add-data',str(ROOT/'VERSION')+os.pathsep+'.',str(ROOT/'scripts'/entry)],check=True)
+        '--paths',str(ROOT/'assets/studio'),'--add-data',str(ROOT/'VERSION')+os.pathsep+'.',str(ROOT/'scripts'/entry)],check=True)
 
 
 def stage(source,work):

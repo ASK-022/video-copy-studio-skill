@@ -10,11 +10,20 @@ ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'scripts'))
 from asr_compat import offline_model_path
 from offline_client import request
 from offline_client import single_client
+from offline_client import environment
 from bootstrap import upstream,patch_runtime
 from build_offline_client import copy_tree
 
 
 class OfflineClient(unittest.TestCase):
+    def test_offline_child_uses_bundled_ffmpeg_and_separate_data(self):
+        root=Path('C:/portable');data=Path('C:/private-data')
+        locations={'root':root,'engine':root/'Engine','python':root/'Runtime/python/python.exe','models':root/'Models',
+            'browsers':root/'Browsers','ffmpeg':root/'FFmpeg/bin/ffmpeg.exe'}
+        value=environment(locations,data,'test-instance',8777)
+        self.assertEqual(value['FFMPEG_PATH'],str(locations['ffmpeg']))
+        self.assertEqual(value['COPY_STUDIO_DATA'],str(data/'data'))
+
     def test_offline_models_do_not_fall_back_to_network_ids(self):
         with tempfile.TemporaryDirectory() as folder,patch.dict('os.environ',{'VIDEO_COPY_STUDIO_OFFLINE_MODELS':folder}):
             with self.assertRaises(FileNotFoundError):offline_model_path('iic/SenseVoiceSmall')

@@ -85,6 +85,7 @@ def environment(locations,data,instance,port):
     env.update(PYTHONNOUSERSITE='1',PYTHONIOENCODING='utf-8',PYTHONPYCACHEPREFIX=str(data/'pycache'),COPY_STUDIO_ASR_ROOT=str(locations['engine']),
         COPY_STUDIO_ASR_PYTHON=str(locations['python']),COPY_STUDIO_DATA=str(data/'data'),COPY_STUDIO_PORT=str(port),
         COPY_STUDIO_INSTANCE=instance,VIDEO_COPY_STUDIO_OFFLINE_MODELS=str(locations['models']),
+        COPY_STUDIO_BUNDLE=str(locations['root']),COPY_STUDIO_CLIENT_DATA=str(data),FFMPEG_PATH=str(locations['ffmpeg']),
         MODELSCOPE_CACHE=str(data/'cache'),MODEL_CACHE_DIR=str(locations['models']),ENABLE_GPU='false',
         PLAYWRIGHT_BROWSERS_PATH=str(locations['browsers']),HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1',HF_HUB_DISABLE_TELEMETRY='1')
     env['PATH']=str(locations['ffmpeg'].parent)+os.pathsep+env.get('PATH','')
@@ -167,6 +168,8 @@ def main():
     parser.add_argument('--self-test',type=Path);parser.add_argument('--close',action='store_true');args=parser.parse_args()
     root=args.root or (Path(sys.executable).parent if getattr(sys,'frozen',False) else Path(__file__).resolve().parents[1])
     if args.close:close_service(read_json(args.data_dir/'offline-state.json'));return
+    from app_update_worker import recover
+    recover(root,args.data_dir)
     if args.self_test:
         locations,state=start(root,args.data_dir)
         args.self_test.write_text(json.dumps({'ok':True,**state},ensure_ascii=False),encoding='utf-8');return
@@ -185,9 +188,29 @@ def main():
                 '--no-first-run','--disable-background-networking','--disable-component-update','--disable-sync','--metrics-recording-only'],creationflags=NO_WINDOW)
         finally:
             if getattr(sys,'frozen',False):ctypes.windll.kernel32.SetDllDirectoryW(str(Path(sys._MEIPASS)))
-        browser.wait()
+        pending=None
+        while browser.poll() is None:
+            try:
+                update=request(state['url'],'/api/updates/state')
+                if update.get('phase')=='ready':
+                    plan=Path(update['plan']).resolve()
+                    if not plan.is_relative_to((args.data_dir/'updates').resolve()) or not plan.is_file():raise ValueError('升级任务路径无效。')
+                    pending=plan;browser.terminate();browser.wait(timeout=10);break
+            except (OSError,ValueError):pass
+            time.sleep(1)
         try:close_service(state)
         except ValueError:pass
+        if pending:
+            helper=pending.parent/'helper/app_update_worker.py'
+            env=dict(os.environ);env['PYTHONPATH']=str(helper.parent);env.pop('PYTHONHOME',None)
+            if getattr(sys,'frozen',False):ctypes.windll.kernel32.SetDllDirectoryW(None)
+            try:
+                log=(args.data_dir/'updates/updater.log').open('ab')
+                subprocess.Popen([str(locations['python']),str(helper),'--plan',str(pending)],cwd=helper.parent,env=env,
+                    stdout=log,stderr=log,creationflags=NO_WINDOW)
+                log.close()
+            finally:
+                if getattr(sys,'frozen',False):ctypes.windll.kernel32.SetDllDirectoryW(str(Path(sys._MEIPASS)))
 
 
 if __name__=='__main__':

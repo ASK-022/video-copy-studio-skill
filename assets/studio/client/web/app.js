@@ -319,14 +319,32 @@ $('provider-remove').onclick=async()=>{if(!editingProviderId)return;try{await ap
 async function poll(){try{if(currentId&&busy(current)){const id=currentId;const item=await api('/jobs/'+id);if(id===currentId){const wasBusy=busy(current);render(item);if(wasBusy&&!busy(item)){await refreshHistory();toast(item.status==='done'?'处理完成。':item.error);}}}}catch(e){toast(e.message);}finally{setTimeout(poll,1800);}}
 (async()=>{try{let initialSpace='video';try{initialSpace=localStorage.getItem('vcs-creative-space')||'video';}catch(_){}applyCreativeSpace(initialSpace);const [,prefs]=await Promise.all([refreshSettings(),api('/preferences')]);referenceDrafts.setDefault(prefs.default_link_provider);$('link-provider').value=prefs.default_link_provider;const jobs=await refreshHistory();if(jobs.length)await selectJob(jobs[0].id);else restoreImportDraft(null);}catch(e){toast(e.message);}poll();})();
 
-// Manual, read-only release check; updates are applied by the Windows manager.
+// Signed release metadata; updates never replace resources or personal data.
+let availableUpdate=null;
 $('updates-check').onclick=async()=>{
-  const button=$('updates-check'),status=$('updates-status');button.disabled=true;status.textContent='正在检查正式版…';
+  const button=$('updates-check'),status=$('updates-status');button.disabled=true;$('updates-apply').hidden=true;status.textContent='正在检查正式版与国内镜像…';
   try{
-    const result=await api('/updates');
-    status.textContent=`本机 v${result.current} · 正式版 v${result.latest}。`+(result.update_available?'发现新版。打开安装管理器点击“安装 / 更新”，或查看发布页下载新版。':'当前已是最新版本。');
-    if(result.update_available){
-      const link=document.createElement('a');link.href=result.release_url;link.target='_blank';link.rel='noreferrer';link.textContent=' 查看新版与下载';status.append(link);
+    const result=await api('/updates');availableUpdate=result;
+    status.textContent=`本机 v${result.current} · 正式版 v${result.latest}。`+(result.update_available?'发现新版。':'当前已是最新版本。')+(result.signature_verified?'清单签名已验证。':'');
+    $('updates-notes').textContent=result.notes||'';$('updates-notes').hidden=!result.notes;
+    if(result.update_available&&result.one_click&&result.signature_verified&&result.compatible){
+      $('updates-apply').hidden=false;$('updates-apply').textContent=`一键更新并重启（约 ${(result.package_bytes/1024/1024).toFixed(1)} MB）`;
+    }else if(result.update_available){
+      const link=document.createElement('a');link.href=result.release_url;link.target='_blank';link.rel='noreferrer';link.textContent=' 查看发布页与安装器';status.append(link);
     }
   }catch(error){status.textContent=error.message;}finally{button.disabled=false;}
 };
+async function watchAppUpdate(){
+  try{const result=await api('/updates/state');if(result.message)$('updates-status').textContent=result.message;
+    if(['downloading','ready','testing'].includes(result.phase)){setTimeout(watchAppUpdate,1500);return;}
+    $('updates-apply').disabled=false;
+  }catch(_){$('updates-status').textContent='客户端正在切换版本，请稍候，新窗口会自动打开。';setTimeout(watchAppUpdate,2000);}
+}
+$('updates-apply').onclick=async()=>{
+  if(!availableUpdate)return;
+  if(!window.confirm(`将更新到 v${availableUpdate.latest} 并重新打开客户端。资料和 Key 保留，复用原模型；验证失败自动恢复旧版。请先保存页面中未提交的编辑。现在更新？`))return;
+  $('updates-apply').disabled=true;
+  try{await api('/updates/apply',{method:'POST',body:JSON.stringify({version:availableUpdate.latest})});watchAppUpdate();}
+  catch(error){$('updates-status').textContent=error.message;$('updates-apply').disabled=false;}
+};
+api('/updates/state').then(result=>{if(result.message)$('updates-status').textContent=result.message;}).catch(()=>{});

@@ -37,7 +37,7 @@ class Updates(unittest.TestCase):
 
     def test_check_is_read_only_and_uses_fixed_public_endpoint(self):
         from io import BytesIO
-        with patch('client.updates.urllib.request.urlopen',return_value=BytesIO(json.dumps(release()).encode())) as fetch:
+        with patch('client.updates.signed_update',side_effect=ValueError('mirror unavailable')),patch('client.updates.urllib.request.urlopen',return_value=BytesIO(json.dumps(release()).encode())) as fetch:
             result=check_update('1.0.0')
         request=fetch.call_args.args[0]
         self.assertEqual(request.full_url,f'https://api.github.com/repos/{REPOSITORY}/releases/latest')

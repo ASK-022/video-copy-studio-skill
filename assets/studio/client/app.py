@@ -29,6 +29,7 @@ from client.feishu import FeishuSettings, FeishuStore
 from client import manuscripts,products,planning
 from client import product_imports,document_imports
 from client.updates import check_update,local_version
+from client.app_updates import AppUpdates
 
 ROOT = Path(__file__).resolve().parents[1]
 STATE = Path(os.environ.get('COPY_STUDIO_DATA', str(ROOT/'.studio'))).resolve()
@@ -50,6 +51,7 @@ MAX_TEXT = 20000
 PROVIDERS = ProviderStore(STATE)
 FEISHU = FeishuStore(STATE)
 MATERIAL_IMPORTS={}
+APP_UPDATES=AppUpdates()
 
 
 def atomic_json(path, data):
@@ -323,7 +325,15 @@ async def local_only(request:Request, call_next):
                 return JSONResponse({'detail':'请求来源不匹配。'},403)
             if request.headers.get('x-studio-request') != '1':
                 return JSONResponse({'detail':'请求缺少本地校验。'},403)
-    response = await call_next(request)
+    writing=request.method not in ('GET','HEAD') and request.url.path not in ('/api/updates/apply','/api/client/close')
+    if writing:
+        with APP_UPDATES.lock:
+            if APP_UPDATES.busy:return JSONResponse({'detail':'正在更新程序，请等待客户端重新打开后继续编辑。'},409)
+            APP_UPDATES.writers+=1
+    try:response = await call_next(request)
+    finally:
+        if writing:
+            with APP_UPDATES.lock:APP_UPDATES.writers-=1
     response.headers['X-Content-Type-Options']='nosniff'
     response.headers['Referrer-Policy']='no-referrer'
     response.headers['Content-Security-Policy']="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'"
@@ -343,13 +353,27 @@ def index():
 def health():
     with LOCK:active=sum(r['status'] in ('queued','working') for r in MATERIAL_IMPORTS.values())
     return {'ok':True,'asr_ready':PYTHON.exists(),'ai_configured':bool(load_config().get('encrypted_key')),'product_imports_active':active,
-            'instance':os.environ.get('COPY_STUDIO_INSTANCE',''),'offline_resources':bool(os.environ.get('VIDEO_COPY_STUDIO_OFFLINE_MODELS'))}
+            'instance':os.environ.get('COPY_STUDIO_INSTANCE',''),'offline_resources':bool(os.environ.get('VIDEO_COPY_STUDIO_OFFLINE_MODELS')),
+            'version':local_version(),'update_ready':(Path(__file__).parent/'web/app.js').is_file()}
 
 
 @app.get('/api/updates')
 def updates():
-    try:return check_update(local_version())
+    try:return dict(check_update(local_version()),one_click=APP_UPDATES.supported)
     except ValueError as exc:raise HTTPException(503,str(exc)) from exc
+
+
+@app.get('/api/updates/state')
+def update_state():return APP_UPDATES.state()
+
+
+@app.post('/api/updates/apply',status_code=202)
+def apply_update(data:dict):
+    with LOCK:
+        def busy():return any(item.get('status') in ('queued','working') for item in JOBS.values()) or any(item.get('status') in ('queued','working') for item in MATERIAL_IMPORTS.values())
+        try:APP_UPDATES.begin(data.get('version'),busy)
+        except ValueError as exc:raise HTTPException(409,str(exc)) from exc
+    return APP_UPDATES.state()
 
 
 @app.post('/api/client/close')

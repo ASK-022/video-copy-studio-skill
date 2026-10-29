@@ -4,6 +4,8 @@ from pathlib import Path
 import re
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
+from client.update_trust import MANIFEST_URLS,public_get,verify
 
 REPOSITORY = 'ASK-022/video-copy-studio-skill'
 
@@ -42,13 +44,36 @@ def describe_release(release,current):
         'notes':str(release.get('body') or '')[:12000],'setup_url':setup_url,'tag':tag}
 
 
+def signed_update(current):
+    version_tuple(current)
+    def fetch(url):
+        try:
+            envelope=json.loads(public_get(url,128*1024));payload=verify(envelope)
+            return (payload,envelope,url)
+        except (OSError,ValueError):return None
+    with ThreadPoolExecutor(max_workers=len(MANIFEST_URLS)) as pool:
+        results=[item for item in pool.map(fetch,MANIFEST_URLS) if item]
+    if not results:raise ValueError('暂时无法连接版本清单镜像和 GitHub，请稍后重试；不影响本机使用。')
+    payload,envelope,url=max(results,key=lambda item:version_tuple(item[0]['version']))
+    latest=payload['version']
+    return {'current':current,'latest':latest,'update_available':version_tuple(latest)>version_tuple(current),
+        'release_url':f'https://github.com/{REPOSITORY}/releases/tag/v{latest}',
+        'setup_url':f'https://github.com/{REPOSITORY}/releases/download/v{latest}/VideoCopyStudio-Setup-v{latest}.exe',
+        'tag':'v'+latest,'notes':str(payload.get('notes',''))[:12000],'source':url,
+        'signature_verified':True,'compatible':version_tuple(current)>=version_tuple(payload['min_version']),
+        'package_bytes':payload['package']['bytes'],'envelope':envelope}
+
+
 def check_update(current):
+    try:return signed_update(current)
+    except ValueError:pass
+    # Read-only fallback supports old releases. Unsigned API results cannot be applied.
     request=urllib.request.Request(f'https://api.github.com/repos/{REPOSITORY}/releases/latest',
         headers={'User-Agent':'VideoCopyStudio-Update','Accept':'application/vnd.github+json'})
     try:
         with urllib.request.urlopen(request,timeout=20) as response:raw=response.read(2*1024*1024+1)
         if len(raw)>2*1024*1024:raise ValueError('更新信息过大，请稍后重试。')
-        return describe_release(json.loads(raw),current)
+        return dict(describe_release(json.loads(raw),current),signature_verified=False,compatible=False,source='GitHub API')
     except urllib.error.HTTPError as exc:
         raise ValueError(f'GitHub 更新检查失败（HTTP {exc.code}），请稍后重试；不影响本机使用。') from exc
     except (OSError,urllib.error.URLError) as exc:

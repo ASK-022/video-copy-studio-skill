@@ -55,6 +55,12 @@ python scripts/studio_agent.py wait --job-id JOB_ID --timeout 30
 
 ## 更新
 
+本地转写支持 GPU／CPU／自动设备选择。Agent 使用 `action=compute` 查询或保存偏好；只有用户要求安装 GPU 环境时执行 `setup-gpu --install`。设备状态、条件及在线／离线准备命令见 [references/gpu.md](references/gpu.md)。报告表格显示已有真实抽样截图，可放大定位、冻结表头或切换逐段阅读，不为补截图重新生成已完成报告。
+
+本版本包含五项工作流：`resume` 按原批次快照补齐剩余，不重写已完成成稿；`preview-script/get-preview/confirm-preview` 先本机读取并按明确选择拆分导入；`review-drafts` 比较当前保存成稿的文本相似度；`set-editorial` 保存采用状态与审核意见；`set-metadata` 及 `list` 的搜索参数用于项目、商品、标签与日期管理。`tasks` 返回任务阶段和保存进度。字段见参数文档，发布版本与安装包以对应 Release 为准。
+
+相似度是本机文本与开头重合提示，不代表语义理解或真实投放效果。拆分建议必须符合用户的明确要求或核对结果，不能把编号卖点自动当作多份脚本；保留读取的原始正文。确认请求相同可安全重试；确认后改拆分应新建预览，不重复创建相同参考。
+
 自己的商品图片或文案可用 `extract-material` 提取，`material-status` 查询独立状态；核对候选资料后 `apply-material` 填回对应模式。图片只在本机 OCR，只有识别文字交给所选文字服务商，不发送原图。参考口播、原商品与目标商品资料保持独立，不能把待核对内容自动放进商品库的已确认卖点。
 
 脚本原文与商品文档支持 DOCX/PDF/TXT，单份 20 MB、正文 2 万字内，PDF 最多 40 页。文档本机读取，扫描 PDF 用本机 OCR；只把读取文字交给当前 AI。直接脚本不默认纠错：保留原文，按空行保留已有分段；未分段时再分析结构。导入并等待 done 后复用 same/switch 生成，详见参数文档。

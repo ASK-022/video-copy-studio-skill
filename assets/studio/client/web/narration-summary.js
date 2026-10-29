@@ -44,7 +44,9 @@ function renderResults(job){
   narrationEl('narration-summary').hidden=state.view==='structure';narrationEl('results').hidden=state.view!=='structure';
   for(const b of document.querySelectorAll('[data-result-view]'))b.setAttribute('aria-selected',String(b.dataset.resultView===state.view));
   narrationEl('narration-summary').replaceChildren();
+  if(typeof prepareEditorialResults==='function')prepareEditorialResults(data);
   rows.forEach((row,i)=>{
+    if(typeof editorialVisible==='function'&&!editorialVisible(job,batch,i))return;
     const variant=batch.variants[i],card=document.createElement('article');card.className='narration-card';
     const heading=document.createElement('div');heading.className='narration-card-heading';
     const select=document.createElement('input');select.type='checkbox';select.checked=row.selected;select.setAttribute('aria-label',`选择第 ${i+1} 条文案`);

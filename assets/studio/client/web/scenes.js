@@ -96,8 +96,9 @@ function renderSceneUI(job){
   $('report-stale').hidden=!report||report.segments.map(s=>s.text).join('').replace(/\s/g,'')===job.corrected.replace(/\s/g,'');
   if(report){
     $('report-provider-label').textContent=report.ai_provider.name+' · '+({local:'本机 OCR',cue:'Cue',vision:'视觉模型'}[report.visual_mode])+' · '+new Date(report.created*1000).toLocaleString('zh-CN');
-    const signature=job.id+activeScene+report.created;
+    const signature=job.id+activeScene+report.created+JSON.stringify((job.evidence?.frames||[]).map(f=>[f.id,f.file,f.time]));
     if(signature!==sceneReportSignature){sceneReportSignature=signature;$('scene-report-body').innerHTML=reportHTML(report.markdown);$('report-options').open=false;if(activeScene==='transcript')$('transcript-editor').open=false;}
+    if(typeof enhanceReportMedia==='function')enhanceReportMedia(job,activeScene,report);
     $('scene-export-md').href=`/api/jobs/${job.id}/reports/${activeScene}/export?format=md`;$('scene-export-json').href=`/api/jobs/${job.id}/reports/${activeScene}/export?format=json`;
   }else{$('report-provider-label').textContent='';sceneReportSignature='';$('report-options').open=true;}
   const frames=job.evidence?.frames||[];$('frame-evidence').hidden=!frames.length;

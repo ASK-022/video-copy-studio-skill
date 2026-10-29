@@ -47,7 +47,7 @@ class Studio:
             raise ValueError(str(message)[:1000]) from exc
         return raw if binary else json.loads(raw)
 
-    def upload(self,path,facts,auto_ai,script=False):
+    def upload(self,path,facts,auto_ai,script=False,preview=False):
         path=Path(path).expanduser().resolve()
         if not path.is_file():raise ValueError('输入媒体文件不存在。')
         if path.stat().st_size>(20 if script else 500)*1024*1024:raise ValueError('输入文件超过允许的大小。')
@@ -59,7 +59,7 @@ class Studio:
         suffix=f'\r\n--{boundary}--\r\n'.encode()
         connection=http.client.HTTPConnection(self.parsed.hostname,self.parsed.port or 80,timeout=240)
         try:
-            connection.putrequest('POST','/api/jobs/script/upload' if script else '/api/jobs/upload')
+            connection.putrequest('POST','/api/script-previews/document' if preview else '/api/jobs/script/upload' if script else '/api/jobs/upload')
             for key,value in {'Content-Type':f'multipart/form-data; boundary={boundary}','Content-Length':str(len(prefix)+path.stat().st_size+len(suffix)),
                  'Cookie':'; '.join(c.name+'='+c.value for c in self.cookies),'X-Studio-Request':'1'}.items():connection.putheader(key,value)
             connection.endheaders();connection.send(prefix)
@@ -130,11 +130,28 @@ def selected_batch(job,params):
 
 
 def invoke(client,params):
-    for flag in ('auto_ai','write','overwrite','quality_check'):
+    for flag in ('auto_ai','write','overwrite','quality_check','refresh'):
         if flag in params and type(params[flag]) is not bool:raise ValueError(flag+' 必须是 JSON 布尔值 true/false。')
     action=params.get('action');job_id=params.get('job_id','')
     if action=='health':return client.request('/health')
-    if action=='list':return client.request('/jobs')
+    if action=='compute':
+        if 'compute_mode' in params:
+            if params['compute_mode'] not in ('auto','gpu','cpu'):raise ValueError('compute_mode must be auto, gpu or cpu.')
+            return client.request('/compute','PUT',{'mode':params['compute_mode']})
+        return client.request('/compute'+('?refresh=true' if params.get('refresh') else ''))
+    if action=='list':
+        query=urllib.parse.urlencode({('product' if k=='product_label' else k):params[k] for k in ('q','project','product_label','tag','start','end') if isinstance(params.get(k),str) and params[k]})
+        return client.request('/jobs'+('?'+query if query else ''))
+    if action=='tasks':return client.request('/tasks')
+    if action=='preview-script':
+        if bool(params.get('text'))==bool(params.get('file')):raise ValueError('text 与 file 必须且只能提供一个。')
+        if params.get('file'):return client.upload(params['file'],'',False,script=True,preview=True)
+        return client.request('/script-previews/text','POST',{k:params[k] for k in ('text','title') if k in params})
+    if action in ('get-preview','confirm-preview'):
+        preview_id=urllib.parse.quote(params['preview_id'],safe='')
+        if action=='get-preview':return client.request('/script-previews/'+preview_id)
+        if params.get('confirmed') is not True:raise ValueError('请按用户明确指定或核对后的脚本拆分确认导入，再设置 confirmed=true。')
+        return client.request('/script-previews/'+preview_id+'/confirm','POST',{k:params[k] for k in ('parts','facts','auto_ai','project','product_label') if k in params})
     if action=='providers':return client.request('/providers')
     if action=='products':return client.request('/products')
     if action=='product-get':return client.request('/products/'+urllib.parse.quote(params['product_id'],safe=''))
@@ -154,6 +171,21 @@ def invoke(client,params):
     if not job_id:raise ValueError('此操作需要 job_id。')
     job=client.request('/jobs/'+urllib.parse.quote(job_id,safe=''))
     if action=='get':return job
+    if action=='set-metadata':
+        body={k:job.get(k,'') for k in ('title','project','product_label')};body.update(tags=job.get('tags',[]),base_version=job.get('metadata_version',0));body.update(params['metadata'])
+        return client.request(f'/jobs/{job_id}/metadata','PATCH',body)
+    if action in ('resume','review-drafts','set-editorial'):
+        batches=job.get('batches',[]);batch=next((b for b in batches if b['id']==params.get('batch_id')),None) if params.get('batch_id','latest')!='latest' else (batches[-1] if batches else None)
+        if not batch:raise ValueError('没有对应的生成批次。')
+        path=f'/jobs/{job_id}/drafts/'+urllib.parse.quote(batch['id'],safe='')
+        if action=='resume':return client.request(path+'/resume','POST',{})
+        indices=params.get('indices') or list(range(1,len(batch['variants'])+1))
+        if any(type(i)!=int or not 1<=i<=len(batch['variants']) for i in indices) or len(indices)!=len(set(indices)):raise ValueError('请使用有效且不重复的稿件序号，从1开始。')
+        if action=='review-drafts':return client.request(path+'/review','POST',{'indices':[i-1 for i in indices],'threshold':params.get('threshold',80)})
+        if not params.get('status'):raise ValueError('采用状态需要 status。')
+        items=[{'index':i-1,'status':params['status'],'note':params.get('note',batch.get('editorial',{}).get(str(i-1),{}).get('note','')),
+                'base_version':batch.get('editorial',{}).get(str(i-1),{}).get('version',0)} for i in indices]
+        return client.request(path+'/editorial','PUT',{'items':items})
     if action=='extract-material':
         mode=params.get('mode','switch')
         if mode not in ('same','switch'):raise ValueError('商品提取 mode 仅支持 same/switch。')
@@ -221,11 +253,16 @@ def main():
     parser.add_argument('--runtime-home',type=Path,default=home());parser.add_argument('--base-url')
     sub=parser.add_subparsers(dest='command',required=True)
     sub.add_parser('doctor');sub.add_parser('repair-browser');start=sub.add_parser('start');start.add_argument('--open',action='store_true')
+    gpu=sub.add_parser('setup-gpu');gpu.add_argument('--install',action='store_true')
     call=sub.add_parser('invoke');call.add_argument('--request',type=Path,required=True)
     wait=sub.add_parser('wait');wait.add_argument('--job-id',required=True);wait.add_argument('--timeout',type=float,default=30)
     args=parser.parse_args();root=args.runtime_home.resolve()
     config=json.loads((root/'runtime.json').read_text(encoding='utf-8')) if (root/'runtime.json').exists() else {}
     url=args.base_url or f'http://127.0.0.1:{config.get("port",8777)}'
+    if args.command=='setup-gpu':
+        config=settings(root)
+        subprocess.run([config['python'],str(SKILL/'scripts/setup_gpu.py'),'--runtime-config',str(root/'runtime.json')]+(['--install'] if args.install else []),check=True)
+        return {'checked':True,'next':'Settings > Services > Local transcription device > Refresh'}
     if args.command=='repair-browser':
         try:return repair_browser(root,settings(root))
         except RuntimeError as exc:raise ValueError(str(exc)) from exc

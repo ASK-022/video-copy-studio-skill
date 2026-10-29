@@ -8,7 +8,7 @@ class ReferenceDrafts {
     const key=this.key(job);
     if(!this.items.has(key))this.items.set(key,{
       mode:job?.kind==='script'||(!job&&this.space==='script')?'script':job?.kind==='link'?'link':'file',file:null,
-      scriptText:job?.kind==='script'?job.raw||'':'',scriptFiles:job?.script_file?[{id:'job-'+job.id,name:job.title,size:null,file:null,status:'imported',jobId:job.id,error:''}]:[],
+      scriptText:job?.kind==='script'?job.raw||'':'',scriptFiles:(job?.script_file||job?.source_document_name)?[{id:'job-'+job.id,name:job.source_document_name||job.title,size:null,file:null,status:'imported',jobId:job.id,error:''}]:[],
       fileName:job?.kind==='upload'?job.title:'',link:job?.source||'',
       facts:job?.facts||'',autoAI:job?.auto_ai!==false,provider:job?job.link_provider||'local':this.defaultProvider
     });

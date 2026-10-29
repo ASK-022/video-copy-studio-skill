@@ -28,6 +28,7 @@ from client.draft_exports import DraftTextExport, export_narrations
 from client.feishu import FeishuSettings, FeishuStore
 from client import manuscripts,products,planning
 from client import product_imports,document_imports
+from client import editorial,workspace,compute
 from client.updates import check_update,local_version
 from client.app_updates import AppUpdates
 
@@ -37,6 +38,7 @@ STATE.mkdir(parents=True, exist_ok=True)
 REPO = Path(os.environ.get('COPY_STUDIO_ASR_ROOT',str(ROOT/'tools/video-transcriber'))).resolve()
 PYTHON = Path(os.environ.get('COPY_STUDIO_ASR_PYTHON',str(REPO/'.venv/Scripts/python.exe')))
 FFMPEG = os.environ.get('FFMPEG_PATH','E:/openfilm/resources/runtime/ffmpeg/ffmpeg.exe')
+COMPUTE = compute.ComputeStore(STATE,PYTHON,asr_root=REPO)
 PORT = int(os.environ.get('COPY_STUDIO_PORT','8777'))
 ORIGIN = f'http://127.0.0.1:{PORT}'
 SESSION = secrets.token_urlsafe(32)
@@ -129,9 +131,10 @@ def new_job(title, kind, facts, source=''):
         return update(job_id)
 
 
-def run_process(command, cwd, logfile, timeout=1800):
+def run_process(command, cwd, logfile, timeout=1800, extra_env=None):
     env = os.environ.copy()
     env.update(PYTHONIOENCODING='utf-8',FFMPEG_PATH=FFMPEG)
+    if extra_env:env.update(extra_env)
     env['PATH'] = str(Path(FFMPEG).parent)+os.pathsep+env.get('PATH','')
     with logfile.open('w',encoding='utf-8') as output:
         proc = subprocess.Popen(command,cwd=cwd,env=env,stdout=output,stderr=output,
@@ -172,35 +175,49 @@ def extract_product(job_id, client, text, facts):
 def generate_in_batches(job_id, data, client):
     snapshot=copy.deepcopy(get_job(job_id))
     stop=CANCEL_EVENTS.setdefault(job_id,threading.Event())
-    if data['mode']=='original':
-        update(job_id,message='正在根据方向、受众和目标时长设计原创骨架…')
-        from client.ai import Structure
-        original=client.call('根据给定商品/主题资料创作一份中文短视频原创脚本骨架。id从1连续递增，role为各段功能，text为成品口播。'
-          '按目标时长、目的、受众和方向安排节奏；不要沿用参考视频内容，不虚构商品事实。',
-          {'facts':data['facts'],'direction':data['direction'],'purpose':data.get('purpose','种草'),
-           'audience':data.get('audience',''),'duration':data.get('target_duration',60)},Structure)
-        if [s.id for s in original.segments]!=list(range(1,len(original.segments)+1)):
-            raise ValueError('原创骨架编号不连续，请重试。')
-        snapshot['structure']=original.model_dump()['segments'];snapshot['duration']=data.get('target_duration',60)
-    batch={'id':uuid.uuid4().hex,'mode':data['mode'],'created':time.time(),
-           'facts':data['facts'],'direction':data['direction'],'reference':snapshot['structure'],
-           'variants':[],'review_notes':[],'requested_count':data['count'],'complete':False}
-    focus=planning.Focus.model_validate(data.get('focus',{}))
-    batch.update(focus=focus.model_dump(),product_snapshot=data.get('product_snapshot'),quality_check=data.get('quality_check',False))
-    if isinstance(getattr(client,'provider_id',None),str):
-        batch['ai_provider']={'id':client.provider_id,'name':client.provider_name,'model':client.model}
+    resume_id=data.get('resume_batch_id')
+    if resume_id:
+        batch=copy.deepcopy(next(b for b in snapshot['batches'] if b['id']==resume_id))
+        snapshot['structure']=copy.deepcopy(batch['reference'])
+    else:
+        if data['mode']=='original':
+            update(job_id,message='正在根据方向、受众和目标时长设计原创骨架…')
+            from client.ai import Structure
+            original=client.call('根据给定商品/主题资料创作中文短视频原创骨架，id从1递增，role为段落功能，text为成品口播。不得虚构商品事实。',
+                {'facts':data['facts'],'direction':data['direction'],'purpose':data.get('purpose','种草'),
+                 'audience':data.get('audience',''),'duration':data.get('target_duration',60)},Structure)
+            if [s.id for s in original.segments]!=list(range(1,len(original.segments)+1)):raise ValueError('原创骨架编号不连续，请重试。')
+            snapshot['structure']=original.model_dump()['segments'];snapshot['duration']=data.get('target_duration',60)
+        batch={'id':uuid.uuid4().hex,'mode':data['mode'],'created':time.time(),'facts':data['facts'],
+            'direction':data['direction'],'reference':copy.deepcopy(snapshot['structure']),'variants':[],
+            'review_notes':[],'requested_count':data['count'],'complete':False,'request':copy.deepcopy(data),
+            'focus':planning.Focus.model_validate(data.get('focus',{})).model_dump(),
+            'product_snapshot':data.get('product_snapshot'),'quality_check':data.get('quality_check',False)}
+        if isinstance(getattr(client,'provider_id',None),str):
+            batch['ai_provider']={'id':client.provider_id,'name':client.provider_name,'model':client.model,
+                'base_url':getattr(client,'base_url','') if isinstance(getattr(client,'base_url',''),str) else ''}
+    focus=planning.Focus.model_validate(batch.get('focus',{}))
+    def save_batch():
+        with LOCK:
+            live=copy.deepcopy(get_job(job_id)['batches'])
+            pos=next((i for i,b in enumerate(live) if b['id']==batch['id']),None)
+            saved=copy.deepcopy(batch)
+            if pos is None:live.append(saved)
+            else:
+                if 'editorial' in live[pos]:saved['editorial']=live[pos]['editorial']
+                live[pos]=saved
+            update(job_id,batches=live,generation_progress={'completed':len(batch['variants']),'total':data['count'],'batch_id':batch['id']})
+    save_batch()  # Even failure before the first result can be resumed.
     try:
         while len(batch['variants'])<data['count'] and not stop.is_set():
-            completed=len(batch['variants'])
-            count=min(2,data['count']-completed)
-            update(job_id,message=f"正在生成第 {completed+1}–{completed+count} 条，共 {data['count']} 条…",
-                   generation_progress={'completed':completed,'total':data['count']})
+            completed=len(batch['variants']);count=min(2,data['count']-completed)
+            update(job_id,message=f"正在生成第 {completed+1}–{completed+count} 条，共 {data['count']} 条…")
             direction=data['direction']+f'\n本轮生成第 {completed+1}–{completed+count} 条，使用不同的口语表达。'
             directions=[planning.direction(focus,i) for i in range(completed+1,completed+count+1)]
-            if focus.enabled:direction+='\n逐条方向（严格按以下顺序输出，不改变原结构）：\n'+'\n'.join(f'第 {completed+i+1} 条：{v}' for i,v in enumerate(directions))
-            if batch['variants']:
-                direction+='避免重复此前版本的标题和切入角度：'+'；'.join(x['title'] for x in batch['variants'][-6:])
+            if focus.enabled:direction+='\n逐条方向（保留原结构）：\n'+'\n'.join(f'第 {completed+i+1} 条：{v}' for i,v in enumerate(directions))
+            if batch['variants']:direction+='避免重复此前版本的标题和切入角度：'+'；'.join(x['title'] for x in batch['variants'][-6:])
             generated=client.generate(snapshot['structure'],'same' if data['mode']=='original' else data['mode'],data['facts'],count,direction)
+            if len(generated['variants'])!=count:raise ValueError('本轮返回条数与请求不符；已完成文案保留，可补齐剩余。')
             for offset,variant in enumerate(generated['variants']):
                 manuscripts.aligned(snapshot['structure'],variant['segments'])
                 if data.get('quality_check',False):
@@ -208,22 +225,15 @@ def generate_in_batches(job_id, data, client):
                     try:
                         variant=reports_engine.enrich_variant(client,variant,snapshot['structure'],'same' if data['mode']=='original' else data['mode'],data['facts'],data['direction']+'\n本条方向：'+directions[offset],snapshot.get('duration',60))
                     except (ValueError,RuntimeError):
-                        variant['quality_error']='文案已生成，六维质检未完成；可保留成稿，稍后重新生成或人工检查。'
+                        variant['quality_error']='文案已生成，六维质检未完成；可保留成稿或人工检查。'
                         batch['review_notes']=list(dict.fromkeys(batch['review_notes']+[variant['quality_error']]))
-                variant['generation_focus']=directions[offset]
-                batch['variants'].append(variant)
-                update(job_id,batches=snapshot['batches']+[copy.deepcopy(batch)],
-                       generation_progress={'completed':len(batch['variants']),'total':data['count']})
+                manuscripts.aligned(snapshot['structure'],variant['segments'])
+                variant['generation_focus']=directions[offset];batch['variants'].append(variant);save_batch()
             batch['review_notes']=list(dict.fromkeys(batch['review_notes']+generated['review_notes']))
-            batch['complete']=len(batch['variants'])==data['count']
-            update(job_id,batches=snapshot['batches']+[copy.deepcopy(batch)],
-                   generation_progress={'completed':len(batch['variants']),'total':data['count']})
-        complete=len(batch['variants'])==data['count']
-        update(job_id,status='done',operation='',error='',message=(
-            f"已生成 {len(batch['variants'])} 条文案。" if complete else
-            f"已停止生成，保留已完成的 {len(batch['variants'])} 条文案。"))
-    finally:
-        CANCEL_EVENTS.pop(job_id,None)
+            batch['complete']=len(batch['variants'])==data['count'];save_batch()
+        complete=len(batch['variants'])==data['count'];batch['complete']=complete;save_batch()
+        update(job_id,status='done',operation='',error='',message=f"已生成 {len(batch['variants'])} 条文案。" if complete else f"已停止生成，保留已完成的 {len(batch['variants'])} 条文案，可补齐剩余。")
+    finally:CANCEL_EVENTS.pop(job_id,None)
 
 
 def transcribe(job_id):
@@ -252,11 +262,21 @@ def transcribe(job_id):
         duration = float(info.get('format',{}).get('duration',0))
         if duration > 1800:
             raise ValueError('第一版支持 30 分钟以内的视频，请先裁剪。')
-        update(job_id,duration=duration,message='SenseVoice 正在本机转写，首次加载模型可能需要等待…')
+        plan=COMPUTE.plan();COMPUTE.started(job_id,plan)
+        update(job_id,duration=duration,asr_compute={k:v for k,v in plan.items() if k!='python'},
+            message='SenseVoice 正在使用 '+plan['name']+' 转写，首次加载模型可能需要等待…')
         out = folder/'asr.json'
-        run_process([str(PYTHON),'webmain.py','transcribe',str(media),'--model','sensevoice-small',
-                     '--language','zh','--timestamp-mode','sentence','--format','json','--output',str(out),'--quiet'],
-                    REPO,folder/'transcribe.log')
+        args=['webmain.py','transcribe',str(media),'--model','sensevoice-small','--language','zh',
+            '--timestamp-mode','sentence','--format','json','--output',str(out),'--quiet']
+        try:
+            run_process([plan['python'],*args],REPO,folder/'transcribe.log',extra_env=compute.process_environment(plan['device']))
+        except ValueError:
+            log=folder/'transcribe.log'
+            if plan['mode']!='auto' or plan['device']!='gpu' or not compute.cuda_failure(log.read_text(encoding='utf-8',errors='replace') if log.exists() else ''):raise
+            log.replace(folder/'transcribe-gpu-error.log')
+            plan.update(device='cpu',name='CPU',python=str(PYTHON),fallback_reason='GPU 运行失败，自动回退 CPU；原错误日志已保留。')
+            COMPUTE.started(job_id,plan);update(job_id,asr_compute={k:v for k,v in plan.items() if k!='python'},message=plan['fallback_reason'])
+            run_process([str(PYTHON),*args],REPO,folder/'transcribe.log',extra_env=compute.process_environment('cpu'))
         result = json.loads(out.read_text(encoding='utf-8-sig'))
         text = result.get('text','').strip()
         if not text:
@@ -284,7 +304,8 @@ def transcribe(job_id):
 def fail(job_id, exc):
     # Never persist arbitrary network errors which could echo an API credential or signed URL.
     message = str(exc) if isinstance(exc,(ValueError,RuntimeError)) else '处理失败，请检查配置或网络后重试。'
-    update(job_id,status='error',operation='',error=message[:1000],message='本次处理未完成，已有文字和结果仍保留。')
+    item=get_job(job_id)
+    update(job_id,status='error',operation='',error=message[:1000],error_stage=item.get('message',''),last_error_operation=item.get('operation',''),message='本次处理未完成，已有文字和结果仍保留。')
 
 
 def ai_work(job_id, operation, data, client):
@@ -351,8 +372,12 @@ def index():
 
 @app.get('/api/health')
 def health():
-    with LOCK:active=sum(r['status'] in ('queued','working') for r in MATERIAL_IMPORTS.values())
-    return {'ok':True,'asr_ready':PYTHON.exists(),'ai_configured':bool(load_config().get('encrypted_key')),'product_imports_active':active,
+    with LOCK:
+        return {'ok':True,'asr_ready':PYTHON.exists(),'ai_configured':bool(load_config().get('encrypted_key')),
+            'product_imports_active':sum(r['status'] in ('queued','working') for r in MATERIAL_IMPORTS.values()),
+            'jobs_active':sum(item.get('status') in ('queued','working') for item in JOBS.values()),
+            'script_previews_active':SCRIPT_PREVIEWS.active(),'workspace':str(ROOT),'data_dir':str(STATE),'content_hub':1,
+            'workspace_id':workspace.identity(STATE),'capabilities':workspace.CAPABILITIES,
             'instance':os.environ.get('COPY_STUDIO_INSTANCE',''),'offline_resources':bool(os.environ.get('VIDEO_COPY_STUDIO_OFFLINE_MODELS')),
             'version':local_version(),'update_ready':(Path(__file__).parent/'web/app.js').is_file()}
 
@@ -370,7 +395,7 @@ def update_state():return APP_UPDATES.state()
 @app.post('/api/updates/apply',status_code=202)
 def apply_update(data:dict):
     with LOCK:
-        def busy():return any(item.get('status') in ('queued','working') for item in JOBS.values()) or any(item.get('status') in ('queued','working') for item in MATERIAL_IMPORTS.values())
+        def busy():return any(item.get('status') in ('queued','working') for item in JOBS.values()) or any(item.get('status') in ('queued','working') for item in MATERIAL_IMPORTS.values()) or SCRIPT_PREVIEWS.active()
         try:APP_UPDATES.begin(data.get('version'),busy)
         except ValueError as exc:raise HTTPException(409,str(exc)) from exc
     return APP_UPDATES.state()
@@ -382,8 +407,22 @@ def close_offline_client(data:dict):
     if not instance or not os.environ.get('VIDEO_COPY_STUDIO_OFFLINE_MODELS'):raise HTTPException(404,'此入口仅供离线客户端使用。')
     if data.get('instance')!=instance:raise HTTPException(403,'客户端实例不匹配。')
     with LOCK:
-        if any(item.get('status') in ('queued','working') for item in JOBS.values()) or any(item.get('status') in ('queued','working') for item in MATERIAL_IMPORTS.values()):
+        if any(item.get('status') in ('queued','working') for item in JOBS.values()) or any(item.get('status') in ('queued','working') for item in MATERIAL_IMPORTS.values()) or SCRIPT_PREVIEWS.active():
             raise HTTPException(409,'仍有任务正在处理，完成后再退出或切换客户端。')
+    if SERVER is None:raise HTTPException(409,'当前服务无法自动退出。')
+    def stop():SERVER.should_exit=True
+    threading.Timer(.3,stop).start()
+    return {'ok':True}
+
+
+@app.post('/api/desktop/close')
+def close_managed_desktop(data:dict):
+    instance=os.environ.get('COPY_STUDIO_INSTANCE','')
+    if os.environ.get('CONTENT_HUB_MANAGED')!='1' or not instance:raise HTTPException(404,'此入口仅供桌面客户端使用。')
+    if data.get('instance')!=instance:raise HTTPException(403,'客户端实例不匹配。')
+    with LOCK:
+        if any(item.get('status') in ('queued','working') for item in JOBS.values()) or any(item.get('status') in ('queued','working') for item in MATERIAL_IMPORTS.values()) or SCRIPT_PREVIEWS.active():
+            raise HTTPException(409,'仍有任务正在处理，下次打开时会继续复用此服务。')
     if SERVER is None:raise HTTPException(409,'当前服务无法自动退出。')
     def stop():SERVER.should_exit=True
     threading.Timer(.3,stop).start()
@@ -395,6 +434,20 @@ def settings():
     data = load_config()
     return {'base_url':data['base_url'],'model':data['model'],'has_key':bool(data.get('encrypted_key')),
             'provider_id':data['id'],'provider_name':data['name']}
+
+
+class ComputeInput(BaseModel):
+    mode:str=Field(pattern='^(auto|gpu|cpu)$')
+
+
+@app.get('/api/compute')
+def compute_status(refresh:bool=False):return COMPUTE.status(refresh)
+
+
+@app.put('/api/compute')
+def compute_save(data:ComputeInput):
+    try:return COMPUTE.save(data.mode)
+    except ValueError as exc:raise HTTPException(400,str(exc))
 
 
 class SettingsInput(BaseModel):
@@ -468,11 +521,27 @@ def test_settings():
 
 
 @app.get('/api/jobs')
-def list_jobs(trash:bool=False):
+def list_jobs(trash:bool=False,q:str='',project:str='',product:str='',tag:str='',start:str='',end:str=''):
     with LOCK:
-        items=[x for x in JOBS.values() if bool(x.get('deleted_at'))==trash]
-        items.sort(key=lambda x:(not bool(x.get('pinned')), -float(x.get('pinned_at') or x['created']) if x.get('pinned') else -x['created']))
-        return [{k:x.get(k) for k in ('id','kind','title','status','created','message','pinned','pinned_at','deleted_at')} for x in items]
+        items=copy.deepcopy([x for x in JOBS.values() if bool(x.get('deleted_at'))==trash])
+    if len(q)>300:raise HTTPException(400,'搜索内容最多300字。')
+    for day in (start,end):
+        if day:
+            from datetime import date
+            try:date.fromisoformat(day)
+            except ValueError:raise HTTPException(400,'日期格式应为 YYYY-MM-DD。')
+    if start and end and start>end:raise HTTPException(400,'开始日期不能晚于结束日期。')
+    result=[]
+    for x in items:
+        if q:
+            texts=[]
+            for b in x['batches']:
+                for i in range(len(b['variants'])):texts.append(manuscripts.current(directory(x['id']),x,b['id'],i)['text'])
+            x_for_search={**x,'raw':x.get('raw','')+'\n'+'\n'.join(texts)}
+        else:x_for_search=x
+        if editorial.library_match(x_for_search,q,project,product,tag,start,end):result.append(x)
+    result.sort(key=lambda x:(not bool(x.get('pinned')), -float(x.get('pinned_at') or x['created']) if x.get('pinned') else -x['created']))
+    return [{k:x.get(k) for k in ('id','kind','title','status','created','message','pinned','pinned_at','deleted_at','project','product_label','tags')} for x in result]
 
 
 class TikHubSettings(BaseModel):
@@ -1502,6 +1571,8 @@ def preview_plan(data:PlanInput):
         for i in range(data.offset+1,min(data.count,data.offset+data.limit)+1)]}
 
 
+from client.iteration import install as install_iteration
+install_iteration(sys.modules[__name__])
 app.mount('/static',StaticFiles(directory=Path(__file__).parent/'web'),name='static')
 
 

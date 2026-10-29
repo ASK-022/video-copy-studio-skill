@@ -17,8 +17,11 @@ def version_tuple(value):
 
 
 def local_version(root=None):
-    root = Path(root) if root else Path(__file__).resolve().parents[3]
-    value=(root/'VERSION').read_text(encoding='utf-8').strip()
+    if root is None:
+        candidates=(Path(__file__).resolve().parents[3]/'VERSION',Path(__file__).parent/'VERSION')
+        path=next((p for p in candidates if p.is_file()),candidates[0])
+    else:path=Path(root)/'VERSION'
+    value=path.read_text(encoding='utf-8').strip()
     version_tuple(value)
     return value
 

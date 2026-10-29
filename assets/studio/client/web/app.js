@@ -123,7 +123,7 @@ $('import-button').onclick=async()=>{
   }catch(e){toast(e.message);}finally{isSubmitting=false;$('import-button').disabled=false;renderScriptDocuments();renderImportButton();}
 };
 async function refreshHistory(){
-  const trashMode=historyTrash,space=creativeSpace,all=await api('/jobs'+(trashMode?'?trash=true':''));if(trashMode!==historyTrash||space!==creativeSpace)return [];
+  const trashMode=historyTrash,space=creativeSpace,query=typeof historySearchParams==='function'?historySearchParams():trashMode?'?trash=true':'',all=await api('/jobs'+query);if(trashMode!==historyTrash||space!==creativeSpace||(typeof historySearchParams==='function'&&query!==historySearchParams()))return [];
   const jobs=all.filter(job=>space==='script'?job.kind==='script':job.kind!=='script');
   $('history-heading').textContent=trashMode?'回收站':space==='script'?'脚本参考库':'参考库';$('history-trash-toggle').textContent=trashMode?'返回参考库':'回收站';
   $('history-count').textContent=jobs.length;$('history-list').replaceChildren();
@@ -133,6 +133,7 @@ async function refreshHistory(){
     const title=document.createElement('span');title.className='history-title';title.textContent=(job.pinned?'★ ':'')+job.title;
     const meta=document.createElement('span');meta.className='history-meta';meta.textContent=(job.pinned?'已置顶 · ':'')+new Date(job.created*1000).toLocaleDateString('zh-CN')+' · '+({queued:'排队中',working:'处理中',done:'已完成',error:'需处理'}[job.status]||job.status);
     button.append(title,meta);button.onclick=()=>selectJob(job.id).catch(e=>toast(e.message));row.append(button);
+    const classification=[job.project,job.product_label,...(job.tags||[])].filter(Boolean);if(classification.length)meta.textContent+=' · '+classification.join(' / ');
     const actions=document.createElement('div');actions.className='history-actions';
     if(trashMode){const restore=document.createElement('button');restore.className='quiet';restore.textContent='恢复';restore.setAttribute('aria-label','恢复 '+job.title);restore.onclick=async()=>{try{await api('/jobs/'+job.id+'/history/restore',{method:'POST'});toast('已恢复到最近参考。');await refreshHistory();}catch(e){toast(e.message);}};actions.append(restore);}
     else{
@@ -173,11 +174,12 @@ function render(job,fresh=false){
   $('structure-summary').textContent=`查看逐段参考文案（${job.structure.length} 段）`;
   $('structure-list').innerHTML=job.structure.map(s=>`<div class="structure-row"><span class="index">${String(s.id).padStart(2,'0')}</span><span class="role">${escapeHTML(s.role)}</span><span>${escapeHTML(s.text)}</span></div>`).join('');
   $('dirty-note').hidden=$('transcript').value===job.corrected;
-  const signature=job.id+':'+job.batches.map(x=>x.id+':'+x.variants.length+':'+x.complete+':'+x.variants.map(v=>v.manuscript?.revision||0).join('.')).join(',');if(signature!==lastBatchSignature){lastBatchSignature=signature;renderResults(job);}
+  const signature=job.id+':'+job.batches.map(x=>x.id+':'+x.variants.length+':'+x.complete+':'+x.variants.map(v=>v.manuscript?.revision||0).join('.')+':'+JSON.stringify(x.editorial||{})).join(',');if(signature!==lastBatchSignature){lastBatchSignature=signature;renderResults(job);}
   renderScriptDocuments();renderImportButton();
   if(typeof renderSceneUI==='function')renderSceneUI(job);
   if(typeof renderMarkerUI==='function')renderMarkerUI(job);
   if(typeof renderWorkspaceState==='function')renderWorkspaceState();
+  if(typeof renderIteration==='function')renderIteration(job);
 }
 function renderProduct(job){
   const mode=creationMode(),draft=productDrafts.sync(job),profile=job.product_profile;
@@ -217,6 +219,7 @@ function renderStructuredResults(job,batch){
     container.append(label);
     if(batch.review_notes?.length){const notes=document.createElement('details');const summary=document.createElement('summary');summary.textContent='编辑提示（不属于口播）';notes.append(summary);for(const note of batch.review_notes){const line=document.createElement('p');line.textContent=note;notes.append(line);}container.append(notes);}
     batch.variants.forEach((variant,i)=>{
+      if(typeof editorialVisible==='function'&&!editorialVisible(job,batch,i))return;
       const card=document.createElement('article');card.className='draft';
       const full=variant.segments.map(s=>s.text).join('\n\n');
       card.innerHTML=`<div class="draft-heading"><span class="draft-index">${String(i+1).padStart(2,'0')}</span><h3>${escapeHTML(variant.title)}</h3><button class="quiet">复制口播</button></div>`+variant.segments.map(s=>`<p class="draft-paragraph"><span class="role">${escapeHTML(s.id+' · '+s.role)}</span>${escapeHTML(s.text)}</p>`).join('')+`<details><summary>查看完整口播</summary><p class="draft-full">${escapeHTML(full)}</p></details>`;

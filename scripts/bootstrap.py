@@ -107,12 +107,16 @@ def patch_runtime(asr):
         if anchor not in text:raise RuntimeError('转写源码版本不匹配，无法应用中文路径兼容修复。')
         source.write_text(text.replace(anchor,anchor+hook,1),encoding='utf-8')
     text=source.read_text(encoding='utf-8')
+    # FunASR keeps placement chosen at construction; changing only the weights
+    # leaves language IDs on CPU in newer releases and breaks CUDA inference.
+    text=text.replace('device="cpu",','device=self.device,')
     offline_hook='from studio_runtime_compat import offline_model_path\n'
     if offline_hook not in text:text=text.replace('from loguru import logger\n','from loguru import logger\n'+offline_hook,1)
     text=text.replace('model=model_path,','model=offline_model_path(model_path),\n            disable_update=bool(os.environ.get("VIDEO_COPY_STUDIO_OFFLINE_MODELS")),')
     source.write_text(text,encoding='utf-8')
     aligner=asr/'utils/forced_aligner.py'
     text=aligner.read_text(encoding='utf-8')
+    text=text.replace('device="cpu",','device=self.device,')
     if offline_hook not in text:text=text.replace('from loguru import logger\n','from loguru import logger\n'+offline_hook,1)
     text=text.replace('model=_FA_MODEL_ID,','model=offline_model_path(_FA_MODEL_ID),\n                disable_update=bool(os.environ.get("VIDEO_COPY_STUDIO_OFFLINE_MODELS")),')
     aligner.write_text(text,encoding='utf-8')

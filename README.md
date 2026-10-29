@@ -1,3 +1,11 @@
+## v1.2.1 截图对照与本地 GPU 转写
+
+爆款拆解、视频转脚本增加实际抽样截图，支持放大和定位原片；表头与时间列固定，顶部横向滚动，可切换逐段阅读。已有参考和报告直接复用。
+
+设置 → 服务 → 本地转写设备，可选自动、GPU、CPU。GPU 环境可选安装，原 CPU 环境保留；安装条件与 Agent 命令见 [GPU 使用说明](references/gpu.md)。同版本还包含任务续写、脚本导入预览、相似度检查、采用审核和项目标签管理；完整参数见 [Agent 参数](references/parameters.md)。
+
+[下载 v1.2.1](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/v1.2.1)。已有完整离线客户端可在设置中检查更新，或使用 `VideoCopyStudio-Upgrade-v1.2.1.exe`；在线安装使用 `VideoCopyStudio-Setup-v1.2.1.exe`，Agent 安装使用 `video-copy-studio-v1.2.1.zip`。资料、Key 与模型继续保留。完整内容中台另有独立更新通道。
+
 ## 内容中台完整桌面版 v1.1.0（编导台＋剪辑台）
 
 [下载完整桌面安装包](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.1.0) · [安装、资源准备与更新说明](references/contenthub-desktop.md)

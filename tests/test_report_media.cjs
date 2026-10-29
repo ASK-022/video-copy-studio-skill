@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict');
+const {chooseFrames}=require('../assets/studio/client/web/report-media-core.js');
+const frames=[{id:1,time:.2},{id:2,time:3.2},{id:3,time:6.2}];
+assert.deepEqual(chooseFrames({start:0,end:3},frames).frames,[frames[0]]);
+assert.deepEqual(chooseFrames({start:2.8,end:3.0},frames).frames,[frames[1]]);
+assert.equal(chooseFrames({start:2.8,end:3.0},frames).nearby,true);
+assert.deepEqual(chooseFrames({start:20,end:23},frames).frames,[]);
+assert.deepEqual(chooseFrames({start:null,end:null},frames).frames,[]);
+assert.deepEqual(chooseFrames(null,frames,[999]).frames,[]);
+assert.deepEqual(chooseFrames(null,frames,[3]).frames,[frames[2]]);
+assert.deepEqual(chooseFrames({start:0,end:10},[...frames,{id:'bad',time:1},{id:4,time:NaN}]).frames,[frames[2]]);
+assert.equal(frames[0].time,.2);
+console.log('Report screenshots: real references, bounded nearest samples, missing alignment and invalid IDs passed.');

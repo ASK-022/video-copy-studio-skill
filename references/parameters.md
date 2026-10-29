@@ -41,10 +41,22 @@ CLI 公共参数放在子命令前：`--base-url http://127.0.0.1:8777`、`--run
 | extract-material | `job_id`、`text` / `images` / `document` 三选一 | `mode=switch`（same/switch），images 为 1–5 个本机图片路径，document 为单个本机文档路径 | 独立商品提取记录 `id`，后续作为 `import_id` |
 | material-status | `job_id`、`import_id` | 无 | 提取状态、来源文字、商品候选、待核对项与实际服务商 |
 | apply-material | `job_id`、`import_id`、`text` | text 为核对后的商品资料 | 填入原参考对应模式的商品草稿，不更改参考口播或自动保存商品库 |
+| resume | `job_id` | `batch_id=latest` | 按原批次商品、模型与结构补齐缺少的文案，保留原成稿和采用状态 |
+| preview-script | `text` 或 `file` 二选一 | `title` | 仅本机读取，返回预览 id；不创建参考或调用 AI |
+| get-preview | `preview_id` | 无 | 预览状态、原始正文与建议拆分 |
+| confirm-preview | `preview_id`、`parts`、`confirmed=true` | `facts`、`auto_ai=true`、`project`、`product_label` | 按已确认拆分创建独立参考，返回 jobs；相同确认可安全重试 |
+| review-drafts | `job_id` | `batch_id`、`indices`（从1开始）、`threshold=80` | 选中成稿的本机文本重合、开头相似度与参考对比；每次最多300条 |
+| set-editorial | `job_id`、`status` | `batch_id`、`indices`、`note` | 批量更新采用状态及审核意见，使用读取时的状态版本防止覆盖 |
+| set-metadata | `job_id`、`metadata` | metadata 可含 title/project/product_label/tags/base_version | 参考重命名、项目和商品分类、标签；有并发修改时返回冲突 |
+| tasks | 无 | 无 | 当前任务阶段、已保存进度与未完成批次数量 |
 
 `job_id`、`batch_id` 必须使用服务实际返回的值。`indices` 从 **1** 开始；`edits` 的键是字符串序号，如 `{"2":"修改后的第二条正文"}`。编辑稿只用于本次复制/导出/写入，不改原结构和评分。
 
 ## 生成参数
+
+五项工作流预览：`list` 可提供 `q/project/product_label/tag/start/end`，日期格式 YYYY-MM-DD，搜索覆盖原文及当前保存成稿。采用状态 `review/edit/adopted/shoot/published/discarded` 分别表示待审核、需修改、已采用、待拍摄、已发布、弃用。状态筛选不自动改变导出勾选；Web 可用「只勾选当前筛选」。相似度分析使用当前成稿，每次1–300条，仅提供本机文本重合提示，不自动删稿。
+
+`resume` 不接收替换商品、条数或新结构，使用生成批次原有快照追加缺少的条数；模型配置已经变化时须恢复原配置，避免静默改用其他服务。原成稿版本和采用状态保留。`preview-script` 只读正文，`confirm-preview.parts` 是用户明确选定的各份 `{title,text}`；原始读取正文仍留存。`confirmed=true` 表示该选择符合用户指示或已核对，不能自行替用户认定内容。返回的 jobs 每份独立，之后分别 wait/analyze/generate。
 
 `import-script` 导入的是完整参考脚本，与提取商品资料不同。DOCX/PDF/TXT 先在本机读取正文，单份最大 20 MB、2 万字，PDF 最多 40 页，扫描 PDF 使用本地 OCR。旧版 `.doc` 需另存为 `.docx`。原文件不发送 AI，只发送读取后的文字；原文保留在 raw，不虚构音视频或时间戳。用空行分段时保留段数、原句与顺序（最多 40 段），没有空行分段时按营销功能分析。PDF 复杂排版及扫描识别结果须核对。`auto_ai=false` 仅导入文字，之后用 analyze 分析，再 generate。不要把含多份独立脚本的文档当作一份混合参考；让用户拆分上传或明确挑选一份。
 
@@ -121,3 +133,7 @@ Web「脚本改写」支持拖拽、多选和分次追加文档，列表可逐�
 最终 `status=done` 且 `pending=false` 才能报告该任务完成；另检查生成的实际条数与请求条数。`status=error` 时先用 get 查看已保留结果。`wait` 超时会返回 pending，不会取消任务，也不重复提交。
 
 `get` 可能包含较长文案，请按需要保存为本地 JSON，不在聊天中重复打印全部内容。绝不打印用户 API Key、App Secret 或原始配置文件。
+
+## 计算设备
+
+`action=compute`：不填 `compute_mode` 时查询；`refresh=true` 重新检测。填写 `compute_mode=auto|gpu|cpu` 保存下一次转写使用的偏好。输出包含 `mode`、`selected_device`、`gpu`、`cpu_available`、`last_run` 和 `scope`。准备可选 GPU 环境的条件和命令见 [gpu.md](gpu.md)。

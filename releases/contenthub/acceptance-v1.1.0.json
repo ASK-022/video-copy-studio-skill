@@ -1,0 +1,28 @@
+{
+  "version": "1.1.0",
+  "platform": "Windows x64",
+  "installer": {
+    "bytes": 514695084,
+    "sha256": "ff0e8ba23f08b35b0b795a39d9ba3115fe554f0b3033028918234dd2f1092d22"
+  },
+  "node_tests_passed": 27,
+  "python_tests_passed": 5,
+  "normal_update": true,
+  "failed_backend_rollback": true,
+  "test_key_decrypts": true,
+  "retained_test_files": 5,
+  "model_files_unchanged": 20,
+  "cold_resource_download_no_proxy": true,
+  "pip_download_cache_disabled": true,
+  "models_loaded": [
+    "sensevoice",
+    "punctuation",
+    "alignment",
+    "ocr"
+  ],
+  "real_asr_chars": 61,
+  "custom_chinese_install_directory": true,
+  "same_directory_installer_overwrite": true,
+  "cloud_installation_zip_parts": 6,
+  "cloud_assembly_sha256_matches": true
+}

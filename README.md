@@ -1,3 +1,13 @@
+## 内容中台完整桌面版 v1.1.0（编导台＋剪辑台）
+
+[下载完整桌面安装包](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.1.0) · [安装、资源准备与更新说明](references/contenthub-desktop.md)
+
+[蓝奏云完整桌面版下载](https://wwbny.lanzoue.com/b0067df0cf)，提取码 `6s7g`。下载全部 6 个 ZIP 分包和安装助手，无需手动解压；助手校验后打开自选目录安装向导。
+
+标准 EXE 安装向导可自选目录。顶部“检查更新”下载签名程序增量后，点击“更新并重启”；新版必须通过双工作台启动检查，失败自动恢复旧版和资料元数据。资料、加密 Key、项目与模型独立保存，已有模型直接复用。首次资源下载已在 Windows 全新目录中以无代理、无 pip 缓存方式验收，并完成实际转写。
+
+这是完整桌面应用，和下方 VideoCopyStudio 文案客户端使用独立版本号与更新清单。首次从旧完整桌面测试包 v1.0.0 升级，请使用本完整安装器。
+
 ## v1.2.0 客户端更新与回滚
 
 [蓝奏云 v1.2.0 升级与在线安装器](https://wwbny.lanzoue.com/b0067dem1a)，提取码 `1d0o`。

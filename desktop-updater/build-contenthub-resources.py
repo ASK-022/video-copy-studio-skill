@@ -9,12 +9,13 @@ import sys
 base=Path(__file__).resolve().parents[2]
 work=base/'.cache/contenthub-setup-build'
 work.mkdir(parents=True,exist_ok=True)
-source=base/'outputs/客户端更新-v1.2.0/video-copy-studio-v1.2.0.zip'
+version=(base/'skills/video-copy-studio/VERSION').read_text(encoding='utf-8').strip()
+source=base/f'outputs/客户端更新-v{version}/video-copy-studio-v{version}.zip'
 payload=work/'payload.zip'
 # --add-data's destination is a directory. Rename the input before bundling it.
 payload.write_bytes(source.read_bytes())
 manifest=work/'resource-payload.json'
-manifest.write_text(json.dumps({'version':'1.2.0','sha256':hashlib.sha256(payload.read_bytes()).hexdigest()}),encoding='utf-8')
+manifest.write_text(json.dumps({'version':version,'sha256':hashlib.sha256(payload.read_bytes()).hexdigest()}),encoding='utf-8')
 subprocess.run([sys.executable,'-m','PyInstaller','--noconfirm','--clean','--onefile','--windowed','--noupx',
     '--name','ContentHub-Resources-Setup','--distpath',str(work),'--workpath',str(work/'work'),'--specpath',str(work),
     '--icon',str(base/'AskFilm/apps/desktop/build/icon.ico'),

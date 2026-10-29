@@ -6,15 +6,17 @@
 
 [下载 v1.2.1](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/v1.2.1)。已有完整离线客户端可在设置中检查更新，或使用 `VideoCopyStudio-Upgrade-v1.2.1.exe`；在线安装使用 `VideoCopyStudio-Setup-v1.2.1.exe`，Agent 安装使用 `video-copy-studio-v1.2.1.zip`。资料、Key 与模型继续保留。完整内容中台另有独立更新通道。
 
-## 内容中台完整桌面版 v1.1.0（编导台＋剪辑台）
+## 内容中台完整桌面版 v1.1.1（编导台＋剪辑台）
 
-[下载完整桌面安装包](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.1.0) · [安装、资源准备与更新说明](references/contenthub-desktop.md)
+[下载完整桌面安装器和更新](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.1.1) · [安装与更新说明](references/contenthub-desktop.md)
 
-[蓝奏云完整桌面版下载](https://wwbny.lanzoue.com/b0067df0cf)，提取码 `6s7g`。GitHub 和蓝奏云都下载全部 6 个 ZIP 分包与 `ContentHub-Install-v1.1.0.exe`，放在同一文件夹；无需手动解压，助手校验后打开自选目录安装向导。
+首次安装或 v1.0.x 用户下载 `ContentHub-Setup-v1.1.1-x64.exe`，双击后自选安装目录。已有 v1.1.0 在顶部检查更新，下载后点“更新并重启”。资料、Key、项目与模型继续保留；新版通过双工作台健康检查后才完成切换，启动失败恢复旧版。
 
-标准 EXE 安装向导可自选目录。顶部“检查更新”下载签名程序增量后，点击“更新并重启”；新版必须通过双工作台启动检查，失败自动恢复旧版和资料元数据。资料、加密 Key、项目与模型独立保存，已有模型直接复用。首次资源下载已在 Windows 全新目录中以无代理、无 pip 缓存方式验收，并完成实际转写。
+编导台加入报告真实截图、固定表头、逐段阅读和 GPU／CPU 切换。GPU 环境按需准备，更新不强制下载 CUDA 依赖；原 CPU 环境保留。新电脑首次仍需独立准备转写资源。
 
-这是完整桌面应用，和下方 VideoCopyStudio 文案客户端使用独立版本号与更新清单。首次从旧完整桌面测试包 v1.0.0 升级，请使用本完整安装器。
+本版 GitHub 提供单文件完整 EXE，增量分片由客户端自动使用。原[蓝奏云 v1.1.0 六分包](https://wwbny.lanzoue.com/b0067df0cf)（提取码 `6s7g`）仍可先安装再检查更新；本次没有上传新版到蓝奏云。
+
+完整内容中台与下方 VideoCopyStudio 文案客户端使用独立版本号、发布页和更新清单。
 
 ## v1.2.0 客户端更新与回滚
 

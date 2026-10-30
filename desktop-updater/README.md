@@ -9,3 +9,5 @@
 发布时先构建并验收完整桌面程序，再使用 `build-contenthub-update.py` 对比基线程序生成增量和 16 MiB 分片。对 `payload.json` 的原始规范化字节用仓库既有 RSA-3072 发布私钥签名，生成 `update.json`。私钥不进入源码、客户端、分包或发布附件。发布清单中的版本、大小、SHA256 和固定下载地址必须同时匹配。
 
 完整桌面版使用 `contenthub-v*` 标签和 `releases/contenthub/latest.json`，不会改写文案客户端的 `releases/latest.json` 或 GitHub 默认 latest 发布。
+
+完整离线发行由 `contenthub_offline_setup.py` 校验资源、保留独立资料和模型位置并调用标准安装器；`contenthub_offline_cloud_setup.py` 先核验和合并独立的程序分包与 r1 资源分包。共用进度组件显示文件、字节、速度和预计剩余时间。资源版本与程序版本分别管理，r1 校验值和附件地址固定；程序更新仍沿用签名清单与原回滚执行器。具体分发方式见 `references/contenthub-offline.md`。

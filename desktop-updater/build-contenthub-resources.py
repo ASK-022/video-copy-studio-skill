@@ -5,6 +5,7 @@ import json
 import os
 import subprocess
 import sys
+import zipfile
 
 base=Path(__file__).resolve().parents[2]
 work=base/'.cache/contenthub-setup-build'
@@ -12,8 +13,17 @@ work.mkdir(parents=True,exist_ok=True)
 version=(base/'skills/video-copy-studio/VERSION').read_text(encoding='utf-8').strip()
 source=base/f'outputs/客户端更新-v{version}/video-copy-studio-v{version}.zip'
 payload=work/'payload.zip'
-# --add-data's destination is a directory. Rename the input before bundling it.
-payload.write_bytes(source.read_bytes())
+# Overlay only reviewed setup code; all embedded third-party assets remain pinned.
+progress_source=base/'AskFilm/scripts/contenthub_progress.py'
+published=base/'.cache/publish/video-copy-studio/scripts'
+overlays={f'video-copy-studio/scripts/{name}':published/name for name in ('bootstrap.py','download_sources.py','browser_setup.py')}
+overlays['video-copy-studio/scripts/contenthub_progress.py']=progress_source
+with zipfile.ZipFile(source) as original,zipfile.ZipFile(payload,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=3) as target:
+    seen=set()
+    for entry in original.infolist():
+        target.writestr(entry,overlays[entry.filename].read_bytes() if entry.filename in overlays else original.read(entry));seen.add(entry.filename)
+    for name,path in overlays.items():
+        if name not in seen:target.writestr(name,path.read_bytes())
 manifest=work/'resource-payload.json'
 manifest.write_text(json.dumps({'version':version,'sha256':hashlib.sha256(payload.read_bytes()).hexdigest()}),encoding='utf-8')
 subprocess.run([sys.executable,'-m','PyInstaller','--noconfirm','--clean','--onefile','--windowed','--noupx',

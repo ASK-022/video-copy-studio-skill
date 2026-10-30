@@ -8,11 +8,13 @@
 
 ## 内容中台完整桌面版 v1.1.1（编导台＋剪辑台）
 
+**完整离线安装**：[操作步骤与注意事项](references/contenthub-offline.md)。程序 1.1.1 与资源 r1 分别发行；新电脑下载 Offline-Install 安装器、6 个程序 ZIP 和 25 个资源 ZIP 后自动合并安装，本地转写不再下载模型。已有版本继续在客户端检查更新，只更新程序，模型没变就不重复下载。
+
 [下载完整桌面安装器和更新](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.1.1) · [安装与更新说明](references/contenthub-desktop.md)
 
 首次安装或 v1.0.x 用户下载 `ContentHub-Setup-v1.1.1-x64.exe`，双击后自选安装目录。已有 v1.1.0 在顶部检查更新，下载后点“更新并重启”。资料、Key、项目与模型继续保留；新版通过双工作台健康检查后才完成切换，启动失败恢复旧版。
 
-编导台加入报告真实截图、固定表头、逐段阅读和 GPU／CPU 切换。GPU 环境按需准备，更新不强制下载 CUDA 依赖；原 CPU 环境保留。新电脑首次仍需独立准备转写资源。
+编导台加入报告真实截图、固定表头、逐段阅读和 GPU／CPU 切换。GPU 环境按需准备，更新不强制下载 CUDA 依赖；原 CPU 环境保留。新电脑可使用上方完整离线包一次准备本机转写资源。
 
 本版 GitHub 提供单文件完整 EXE，增量分片由客户端自动使用。原[蓝奏云 v1.1.0 六分包](https://wwbny.lanzoue.com/b0067df0cf)（提取码 `6s7g`）仍可先安装再检查更新；本次没有上传新版到蓝奏云。
 

@@ -6,17 +6,21 @@
 
 [下载 v1.2.1](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/v1.2.1)。已有完整离线客户端可在设置中检查更新，或使用 `VideoCopyStudio-Upgrade-v1.2.1.exe`；在线安装使用 `VideoCopyStudio-Setup-v1.2.1.exe`，Agent 安装使用 `video-copy-studio-v1.2.1.zip`。资料、Key 与模型继续保留。完整内容中台另有独立更新通道。
 
-## 内容中台完整桌面版 v1.1.1（编导台＋剪辑台）
+## 内容中台完整桌面版 v1.2.0（编导台＋剪辑台）
 
-[下载完整桌面安装器和更新](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.1.1) · [安装与更新说明](references/contenthub-desktop.md)
+[下载完整桌面安装器和更新](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.2.0) · [安装与更新说明](references/contenthub-desktop.md) · [正式版更新日志](releases/contenthub/CHANGELOG.stable.md) · [开发版更新日志](releases/contenthub/CHANGELOG.development.md)
 
-首次安装或 v1.0.x 用户下载 `ContentHub-Setup-v1.1.1-x64.exe`，双击后自选安装目录。已有 v1.1.0 在顶部检查更新，下载后点“更新并重启”。资料、Key、项目与模型继续保留；新版通过双工作台健康检查后才完成切换，启动失败恢复旧版。
+本次先通过 GitHub 发布。14 组门禁、冻结客户端双工作台、实际转写、假 API 包导入、v1.1.1 实际升级与强制失败回滚均通过。默认自动模式已实测 GPU 设备不匹配后重试 CPU 并完成 46 字转写，22 个已有模型未变。蓝奏云新版安装包待补；完整资源 r1 的首次远端分发尚未全部就绪，不能将程序安装器视作含全部模型的离线包。
 
-编导台加入报告真实截图、固定表头、逐段阅读和 GPU／CPU 切换。GPU 环境按需准备，更新不强制下载 CUDA 依赖；原 CPU 环境保留。新电脑首次仍需独立准备转写资源。
+首次安装下载 `ContentHub-Setup-v1.2.0-x64.exe`，双击后选择安装目录。已有完整桌面版 v1.1.0／v1.1.1 在顶部点击“检查更新”，下载校验后点击“更新并重启”。先保存未提交的编辑并等待任务结束；新版双工作台启动检查失败会恢复旧版。资料、加密 Key、项目及已有模型继续保留。
 
-本版 GitHub 提供单文件完整 EXE，增量分片由客户端自动使用。原[蓝奏云 v1.1.0 六分包](https://wwbny.lanzoue.com/b0067df0cf)（提取码 `6s7g`）仍可先安装再检查更新；本次没有上传新版到蓝奏云。
+本次修复自动模式下已识别的 CUDA 设备不匹配未回退 CPU 的问题，明确选择 GPU 时保留原失败行为；候选还包含批量视频解析与 Grok 画面反推、分阶段进度与统一任务中心；提示词反推可拖动选区整体平移并保持长度。剪辑台加入创作画布、拖入图片／视频／音频、素材连线、镜头分组、自动保存和 AI 方案预览，以及可灵官方授权与生成结果导入。AI 与可灵功能需各自有效服务配置或官方账号授权。
 
-完整内容中台与下方 VideoCopyStudio 文案客户端使用独立版本号、发布页和更新清单。
+设置 → 服务商 →“团队 API 配置包”，可选择团队私下提供的 ZIP／JSON，核对服务商预览后导入并启用；兼容已有密钥 ZIP，导入后按当前 Windows 用户重新加密。软件发布包不含团队 Key，密钥包请通过团队认可的私密方式分发。
+
+资源契约仍为 r1。已有可用转写资源请选择“选择已有资源”，更新程序无需重下模型；新电脑首次仍需单独准备资源。GitHub 提供单文件 EXE，名称含 `delta`／`part` 的附件由客户端自动下载。蓝奏云新版待补，原[蓝奏云 v1.1.0 六分包](https://wwbny.lanzoue.com/b0067df0cf)（提取码 `6s7g`）为旧版入口，不是本版附件。
+
+完整桌面版使用 `contenthub-v1.2.0` 和独立签名清单；下方 VideoCopyStudio 文案客户端继续使用 `v1.2.1`，两套更新通道分别维护。
 
 ## v1.2.0 客户端更新与回滚
 

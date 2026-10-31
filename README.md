@@ -6,17 +6,21 @@
 
 [下载 v1.2.1](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/v1.2.1)。已有完整离线客户端可在设置中检查更新，或使用 `VideoCopyStudio-Upgrade-v1.2.1.exe`；在线安装使用 `VideoCopyStudio-Setup-v1.2.1.exe`，Agent 安装使用 `video-copy-studio-v1.2.1.zip`。资料、Key 与模型继续保留。完整内容中台另有独立更新通道。
 
-## 内容中台完整桌面版 v1.1.1（编导台＋剪辑台）
+## 内容中台完整桌面版：1.2.1 安装资源（编导台＋剪辑台）
 
-[下载完整桌面安装器和更新](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.1.1) · [安装与更新说明](references/contenthub-desktop.md)
+[1.2.1 安装资源](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.2.1) · [安装与更新说明](references/contenthub-desktop.md) · [正式日志](releases/contenthub/CHANGELOG.stable.md) · [开发日志](releases/contenthub/CHANGELOG.development.md)
 
-首次安装或 v1.0.x 用户下载 `ContentHub-Setup-v1.1.1-x64.exe`，双击后自选安装目录。已有 v1.1.0 在顶部检查更新，下载后点“更新并重启”。资料、Key、项目与模型继续保留；新版通过双工作台健康检查后才完成切换，启动失败恢复旧版。
+Windows 10／11 x64 用户下载 `ContentHub-Setup-v1.2.1-x64.exe`，双击选择程序安装目录；资源可另外放在 D／E 盘。已有完整桌面版先保存工作并等待任务完成，再在顶部“检查更新”，下载校验后点“更新并重启”。资料、加密 Key、项目与模型保留，启动健康检查失败恢复旧版。
 
-编导台加入报告真实截图、固定表头、逐段阅读和 GPU／CPU 切换。GPU 环境按需准备，更新不强制下载 CUDA 依赖；原 CPU 环境保留。新电脑首次仍需独立准备转写资源。
+团队案例库支持去重入库、历史版本、检索对照、骨架复用和飞书目录／详情同步。深度拆解按通用七段、带货八维、画面证据、复用骨架与复盘清单展开，保留原文、校对稿、段落角色、顺序和实测时间；截图集中在报告文末。原片宣称与分析推断分别标识，复用结构时目标商品事实默认留空。
 
-本版 GitHub 提供单文件完整 EXE，增量分片由客户端自动使用。原[蓝奏云 v1.1.0 六分包](https://wwbny.lanzoue.com/b0067df0cf)（提取码 `6s7g`）仍可先安装再检查更新；本次没有上传新版到蓝奏云。
+批量视频处理提供分阶段队列与任务中心，失败条目可单独重试。提示词反推支持整体拖动选区及一次复制全部提示词。剪辑台增加可灵授权、任务与结果导入，以及素材／提示词创作画布、连线、分组、模板和保存恢复；画布 AI 先预览方案再确认执行。
 
-完整内容中台与下方 VideoCopyStudio 文案客户端使用独立版本号、发布页和更新清单。
+团队 API 配置包可在“设置 → 服务商”预览、遮蔽密钥并导入，按当前 Windows 用户重新加密。程序内置官方飞书 native CLI 1.0.98；每位同事仍需完成自己的官方应用配置与用户 OAuth 授权。安装器不含发布者身份、团队 Key 或真实配置。
+
+已有 r1 模型资源直接选择复用，普通软件更新不重复下载。新电脑离线安装使用本版完整 EXE、本版 `ContentHub-Offline-Install-v1.2.1.exe`、[既有 r1 资源所在发布页](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.1.1)的全部 25 个资源 ZIP 与 `VC_redist.x64.exe`，保持原名放在同一目录后运行离线助手；无需下载 6 个程序分包。详见[安装说明](references/contenthub-desktop.md)。本次以 GitHub 实际附件为准，蓝奏云新版未上传。
+
+本地视频／音频转写可使用离线资源；AI、公开链接解析、飞书和检查更新需要联网及自己的服务配置。完整桌面版使用 `contenthub-v1.2.1` 与独立更新清单；下方 VideoCopyStudio 文案客户端继续使用自身版本和更新通道。
 
 ## v1.2.0 客户端更新与回滚
 

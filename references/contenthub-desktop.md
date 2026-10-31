@@ -1,13 +1,13 @@
-# 内容中台完整桌面版：1.2.1 安装资源与更新
+# 内容中台完整桌面版：1.2.2 安装资源与更新
 
-内容中台包含编导台和剪辑台，适用于 Windows 10／11 x64。[1.2.1 安装资源](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.2.1)使用 `ContentHub-` 文件名，与独立 VideoCopyStudio 文案客户端的 `v1.2.1` 分别安装和更新。
+内容中台包含编导台和剪辑台，适用于 Windows 10／11 x64。[1.2.2 安装资源](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.2.2)使用 `ContentHub-` 文件名，与独立 VideoCopyStudio 文案客户端的 `v1.2.1` 分别安装和更新。
 
 ## 选择安装方式
 
 | 你的情况 | 操作 |
 |---|---|
 | 已有完整桌面版，能进入客户端 | 保存工作、等待任务完成，在顶部“检查更新”，下载并校验后点“更新并重启” |
-| 新电脑，已有完整 r1 资源目录 | 下载 `ContentHub-Setup-v1.2.1-x64.exe` 安装，资源准备时选择“选择已有资源”并指定完整根目录 |
+| 新电脑，已有完整 r1 资源目录 | 下载 `ContentHub-Setup-v1.2.2-x64.exe` 安装，资源准备时选择“选择已有资源”并指定完整根目录 |
 | 新电脑，需要离线转写资源 | 按下节下载新版完整 EXE、新版离线助手、全部 25 个 r1 ZIP 和微软运行库 |
 | 新电脑，准备在线下载资源 | 先安装完整 EXE，再选择“下载并准备资源”；首次需要下载数 GB，须等待模型加载与转写自检通过 |
 
@@ -15,11 +15,11 @@
 
 将以下文件保持原名放在同一个文件夹：
 
-1. 从 [1.2.1 安装资源](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.2.1)下载 `ContentHub-Setup-v1.2.1-x64.exe` 和 `ContentHub-Offline-Install-v1.2.1.exe`，并下载对应 SHA256 校验文件。
+1. 从 [1.2.2 安装资源](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.2.2)下载 `ContentHub-Setup-v1.2.2-x64.exe` 和 `ContentHub-Offline-Install-v1.2.2.exe`，并下载对应 SHA256 校验文件。
 2. 从 [r1 资源所在的 contenthub-v1.1.1 发布页](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.1.1)下载全部 **25 个 `ContentHub-Resources-r1-01.zip` 至 `ContentHub-Resources-r1-25.zip`**，以及 `VC_redist.x64.exe`。这些是沿用的 r1 资源，文件名中的 r1 不随程序版本改变。
 3. 可按本版附件 `contenthub-resources-r1.json` 或仓库的 [r1 固定资源清单](../releases/contenthub/resources/r1.json)核对资源文件名、大小和 SHA256；逐项下载地址见离线安装说明附件。
 
-双击 **`ContentHub-Offline-Install-v1.2.1.exe`**。助手校验并准备独立资源目录，再打开标准程序安装向导。资源可以放在 D／E 盘等另一个位置；在标准安装向导中选择程序安装目录。不要逐个手工解压资源 ZIP，不要重命名文件。助手直接使用本版完整 EXE，无需下载旧式的 6 个程序 ZIP 分包。
+双击 **`ContentHub-Offline-Install-v1.2.2.exe`**。助手校验并准备独立资源目录，再打开标准程序安装向导。资源可以放在 D／E 盘等另一个位置；在标准安装向导中选择程序安装目录。不要逐个手工解压资源 ZIP，不要重命名文件。助手直接使用本版完整 EXE，无需下载旧式的 6 个程序 ZIP 分包。
 
 需要系统 C++ x64 运行库时，按 `VC_redist.x64.exe` 的微软原版界面安装；它可能要求管理员权限或重启。此文件来自[微软官方来源](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist)，与程序自身的安装目录选择分别处理。
 
@@ -47,9 +47,11 @@
 
 更新清单使用发布签名，下载分片与重组文件均验证 SHA256。资源契约不兼容或没有适配增量时，按提示使用完整安装器。当前 Windows 用户加密的 Key 不能作为跨用户共享凭据，换电脑或账号后需重新配置。
 
-完整桌面版使用独立的 `contenthub-v1.2.1` 发布标记和签名清单；VideoCopyStudio 文案客户端继续使用自身的 `v1.2.1` 通道。两套安装器和增量不能交叉使用。
+完整桌面版使用独立的 `contenthub-v1.2.2` 发布标记和签名清单；VideoCopyStudio 文案客户端继续使用自身的 `v1.2.1` 通道。两套安装器和增量不能交叉使用。
 
 ## 本版工作台功能
+
+- 拆解结果可一键“导入飞书文档”，自动保存案例、上传真实截图。完成后按钮变为打开文档，刷新后可恢复链接；重复提交复用同一案例和文档，无需先填写分类。飞书仍需当前用户自己的应用配置和权限。
 
 - 编导台增加批量视频解析与提示词反推、分阶段队列和统一任务中心；失败条目可单独重试，复用已完成的下载与转写。提示词选区可整体拖动，并可一次复制全部提示词。
 - 深度拆解使用通用七段、带货八维、画面证据、复用骨架和复盘清单。保留原文、校对稿、原段角色、顺序与实测时间，区分原片宣称、分析推断、改拍建议和未知数据。报告使用中文标题，参考截图集中在文末的“参考截图”下，时间说明清晰显示。

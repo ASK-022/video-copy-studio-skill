@@ -1,0 +1,415 @@
+{
+  "format": "contenthub/runner-installer-descriptor/v1",
+  "repository": "ASK-022/video-copy-studio-skill",
+  "version": "1.2.3",
+  "development_version": "1.2.3-dev.2",
+  "source_sha256": "993d63870cd734d23177d6204f262918fdd5291c19df3ebba4579c57a23099a7",
+  "release_id": 432615900,
+  "release_commit": "0fa95cfeead68ccee142566a615a6d55df75b3ea",
+  "tag": "contenthub-v1.2.3",
+  "installer": {
+    "name": "ContentHub-Setup-v1.2.3-x64.exe",
+    "bytes": 526209783,
+    "sha256": "3604ed0b50249c60636143471c0c30b485c04030314fec872510c24988d1ab48"
+  },
+  "prior_assets": [
+    {
+      "name": "ContentHub-delta-1.1.1-to-1.2.3-x64.zip.part001",
+      "bytes": 16777216,
+      "sha256": "33bfed1176fbd0a2d6724a5a670221c3b12ac37a1ad18e1974588cc7ddd526cd"
+    },
+    {
+      "name": "ContentHub-delta-1.1.1-to-1.2.3-x64.zip.part002",
+      "bytes": 16777216,
+      "sha256": "bf28e73ddb90787054a0d6a3c8c658ed38e83a5b9dbc1cf5cbb54fa062e7caab"
+    },
+    {
+      "name": "ContentHub-delta-1.1.1-to-1.2.3-x64.zip.part003",
+      "bytes": 16777216,
+      "sha256": "f4a03380926db79d7e0c19765172c0e2faf91f908e085724fe634d71afc61cc7"
+    },
+    {
+      "name": "ContentHub-delta-1.1.1-to-1.2.3-x64.zip.part004",
+      "bytes": 16777216,
+      "sha256": "660ae9e4072d384851b3df6a9fd1cabb58c17f75d37abdf5b2f852218484159c"
+    },
+    {
+      "name": "ContentHub-delta-1.1.1-to-1.2.3-x64.zip.part005",
+      "bytes": 16777216,
+      "sha256": "6d7819cc572ac46a46fa3c79070b83a844469604bd8e62ed494fe059784433bf"
+    },
+    {
+      "name": "ContentHub-delta-1.1.1-to-1.2.3-x64.zip.part006",
+      "bytes": 16777216,
+      "sha256": "86da25a6afc383578e5ec061a27169bd28ab886dffc8ea0f9c2ebba083c7e0d1"
+    },
+    {
+      "name": "ContentHub-delta-1.1.1-to-1.2.3-x64.zip.part007",
+      "bytes": 16777216,
+      "sha256": "91eb6bce47644f5045e69a1129b3d21bd6ed0313f805cd78b4298a251b2d3986"
+    },
+    {
+      "name": "ContentHub-delta-1.1.1-to-1.2.3-x64.zip.part008",
+      "bytes": 16777216,
+      "sha256": "e6128d475b937d9cc6a0d81323f7342c62f4589ae299f736b2dd62fd16db07c7"
+    },
+    {
+      "name": "ContentHub-delta-1.1.1-to-1.2.3-x64.zip.part009",
+      "bytes": 16777216,
+      "sha256": "e37ed56ddebaf729a137ccba70c6d872b829010cc5a9cc28334ecc2a916171a0"
+    },
+    {
+      "name": "ContentHub-delta-1.1.1-to-1.2.3-x64.zip.part010",
+      "bytes": 16777216,
+      "sha256": "4aadaedf101446c33af23f02549b0cbb81f36e9e6006e84d051bbd0cb83eb003"
+    },
+    {
+      "name": "ContentHub-delta-1.1.1-to-1.2.3-x64.zip.part011",
+      "bytes": 8373928,
+      "sha256": "468d5e74a508535b16589fd150ce17bebb6f2550f6c6246b49fcf5f1064dfd9e"
+    },
+    {
+      "name": "ContentHub-delta-1.1.0-to-1.2.3-x64.zip.part001",
+      "bytes": 16777216,
+      "sha256": "33bfed1176fbd0a2d6724a5a670221c3b12ac37a1ad18e1974588cc7ddd526cd"
+    },
+    {
+      "name": "ContentHub-delta-1.1.0-to-1.2.3-x64.zip.part002",
+      "bytes": 16777216,
+      "sha256": "bf28e73ddb90787054a0d6a3c8c658ed38e83a5b9dbc1cf5cbb54fa062e7caab"
+    },
+    {
+      "name": "ContentHub-delta-1.1.0-to-1.2.3-x64.zip.part003",
+      "bytes": 16777216,
+      "sha256": "f4a03380926db79d7e0c19765172c0e2faf91f908e085724fe634d71afc61cc7"
+    },
+    {
+      "name": "ContentHub-delta-1.1.0-to-1.2.3-x64.zip.part004",
+      "bytes": 16777216,
+      "sha256": "660ae9e4072d384851b3df6a9fd1cabb58c17f75d37abdf5b2f852218484159c"
+    },
+    {
+      "name": "ContentHub-delta-1.1.0-to-1.2.3-x64.zip.part005",
+      "bytes": 16777216,
+      "sha256": "6d7819cc572ac46a46fa3c79070b83a844469604bd8e62ed494fe059784433bf"
+    },
+    {
+      "name": "ContentHub-delta-1.1.0-to-1.2.3-x64.zip.part006",
+      "bytes": 16777216,
+      "sha256": "86da25a6afc383578e5ec061a27169bd28ab886dffc8ea0f9c2ebba083c7e0d1"
+    },
+    {
+      "name": "ContentHub-delta-1.1.0-to-1.2.3-x64.zip.part007",
+      "bytes": 16777216,
+      "sha256": "91eb6bce47644f5045e69a1129b3d21bd6ed0313f805cd78b4298a251b2d3986"
+    },
+    {
+      "name": "ContentHub-delta-1.1.0-to-1.2.3-x64.zip.part008",
+      "bytes": 16777216,
+      "sha256": "e6128d475b937d9cc6a0d81323f7342c62f4589ae299f736b2dd62fd16db07c7"
+    },
+    {
+      "name": "ContentHub-delta-1.1.0-to-1.2.3-x64.zip.part009",
+      "bytes": 16777216,
+      "sha256": "8343d5fa5b417785fd057a14a01e07c7420d497cf499fe5b8eefb141e1568b2a"
+    },
+    {
+      "name": "ContentHub-delta-1.1.0-to-1.2.3-x64.zip.part010",
+      "bytes": 16777216,
+      "sha256": "7c0308b1897d799b5e703923e0c96f04300cc9a10fbd1afc3e8b78f6e8466099"
+    },
+    {
+      "name": "ContentHub-delta-1.1.0-to-1.2.3-x64.zip.part011",
+      "bytes": 8380334,
+      "sha256": "7b45db51b3213613af21f8b3ec32c5cf8e808ac8abc5362fe2bd6bd42fbd6049"
+    },
+    {
+      "name": "ContentHub-delta-1.2.0-to-1.2.3-x64.zip.part001",
+      "bytes": 16777216,
+      "sha256": "33bfed1176fbd0a2d6724a5a670221c3b12ac37a1ad18e1974588cc7ddd526cd"
+    },
+    {
+      "name": "ContentHub-delta-1.2.0-to-1.2.3-x64.zip.part002",
+      "bytes": 16777216,
+      "sha256": "bf28e73ddb90787054a0d6a3c8c658ed38e83a5b9dbc1cf5cbb54fa062e7caab"
+    },
+    {
+      "name": "ContentHub-delta-1.2.0-to-1.2.3-x64.zip.part003",
+      "bytes": 16777216,
+      "sha256": "f4a03380926db79d7e0c19765172c0e2faf91f908e085724fe634d71afc61cc7"
+    },
+    {
+      "name": "ContentHub-delta-1.2.0-to-1.2.3-x64.zip.part004",
+      "bytes": 16777216,
+      "sha256": "660ae9e4072d384851b3df6a9fd1cabb58c17f75d37abdf5b2f852218484159c"
+    },
+    {
+      "name": "ContentHub-delta-1.2.0-to-1.2.3-x64.zip.part005",
+      "bytes": 16777216,
+      "sha256": "6d7819cc572ac46a46fa3c79070b83a844469604bd8e62ed494fe059784433bf"
+    },
+    {
+      "name": "ContentHub-delta-1.2.0-to-1.2.3-x64.zip.part006",
+      "bytes": 16777216,
+      "sha256": "86da25a6afc383578e5ec061a27169bd28ab886dffc8ea0f9c2ebba083c7e0d1"
+    },
+    {
+      "name": "ContentHub-delta-1.2.0-to-1.2.3-x64.zip.part007",
+      "bytes": 16777216,
+      "sha256": "91eb6bce47644f5045e69a1129b3d21bd6ed0313f805cd78b4298a251b2d3986"
+    },
+    {
+      "name": "ContentHub-delta-1.2.0-to-1.2.3-x64.zip.part008",
+      "bytes": 16777216,
+      "sha256": "44cb1258704716bb0a34de244fdbe707291aaa76fa2d02c9538793626dc8f963"
+    },
+    {
+      "name": "ContentHub-delta-1.2.0-to-1.2.3-x64.zip.part009",
+      "bytes": 13892567,
+      "sha256": "1b335b1378e511bc4fbac8501dc31784d5d0064e1233bcc6a514df9a7cca4ef5"
+    },
+    {
+      "name": "ContentHub-delta-1.2.1-to-1.2.3-x64.zip.part001",
+      "bytes": 16777216,
+      "sha256": "33bfed1176fbd0a2d6724a5a670221c3b12ac37a1ad18e1974588cc7ddd526cd"
+    },
+    {
+      "name": "ContentHub-delta-1.2.1-to-1.2.3-x64.zip.part002",
+      "bytes": 16777216,
+      "sha256": "bf28e73ddb90787054a0d6a3c8c658ed38e83a5b9dbc1cf5cbb54fa062e7caab"
+    },
+    {
+      "name": "ContentHub-delta-1.2.1-to-1.2.3-x64.zip.part003",
+      "bytes": 16777216,
+      "sha256": "f4a03380926db79d7e0c19765172c0e2faf91f908e085724fe634d71afc61cc7"
+    },
+    {
+      "name": "ContentHub-delta-1.2.1-to-1.2.3-x64.zip.part004",
+      "bytes": 16777216,
+      "sha256": "660ae9e4072d384851b3df6a9fd1cabb58c17f75d37abdf5b2f852218484159c"
+    },
+    {
+      "name": "ContentHub-delta-1.2.1-to-1.2.3-x64.zip.part005",
+      "bytes": 16777216,
+      "sha256": "6d7819cc572ac46a46fa3c79070b83a844469604bd8e62ed494fe059784433bf"
+    },
+    {
+      "name": "ContentHub-delta-1.2.1-to-1.2.3-x64.zip.part006",
+      "bytes": 16777216,
+      "sha256": "86da25a6afc383578e5ec061a27169bd28ab886dffc8ea0f9c2ebba083c7e0d1"
+    },
+    {
+      "name": "ContentHub-delta-1.2.1-to-1.2.3-x64.zip.part007",
+      "bytes": 16777216,
+      "sha256": "91eb6bce47644f5045e69a1129b3d21bd6ed0313f805cd78b4298a251b2d3986"
+    },
+    {
+      "name": "ContentHub-delta-1.2.1-to-1.2.3-x64.zip.part008",
+      "bytes": 15874541,
+      "sha256": "b19a56cbf45f483dd5f9dc9a68bad69bb038c0b188a4ed2588318158b7540765"
+    },
+    {
+      "name": "update.json",
+      "bytes": 25520,
+      "sha256": "2bc9e13330dead86ba453cc1c50196333619ec06dfd86612b6a16c853ce1c3aa"
+    },
+    {
+      "name": "README-ContentHub.txt",
+      "bytes": 2228,
+      "sha256": "bafc6602e99ee5aac76b19fdc1c317e14bc05ffe01a0e1498a557c35985ec088"
+    },
+    {
+      "name": "ContentHub-Offline-Install-v1.2.3.exe",
+      "bytes": 12476396,
+      "sha256": "6fdfcd088e7263fb82a5b8a40df6d4b626d65975cba56aaeb89371419ed3de5c"
+    },
+    {
+      "name": "VC_redist.x64.exe",
+      "bytes": 18731856,
+      "sha256": "843068991daaa1f73ad9f6239bce4d0f6a07a51f18c37ea2a867e9beca71295c"
+    },
+    {
+      "name": "contenthub-resources-r1.json",
+      "bytes": 12185,
+      "sha256": "1a91688fb167c006f802ec7a02bfd18c9b8113f3de817e9413f896eb841ddfba"
+    },
+    {
+      "name": "README-ContentHub-Offline.txt",
+      "bytes": 4183,
+      "sha256": "98247b99238c7b08182e775d96f987f99f30e261bd3831b83c337a3002279f92"
+    },
+    {
+      "name": "SHA256SUMS-OFFLINE.txt",
+      "bytes": 2932,
+      "sha256": "4834bbf982201a23ec874b78101ebc4b6fa069f59f7259c3b5f656c8adc9d02a"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "bytes": 5178,
+      "sha256": "5b87b0ee0ee1f049a0eaffd283319e9d7921c7e3c5d75aefb04490e51718df27"
+    }
+  ],
+  "chunk_bytes": 16777216,
+  "chunks": [
+    {
+      "index": 1,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part001",
+      "bytes": 16777216
+    },
+    {
+      "index": 2,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part002",
+      "bytes": 16777216
+    },
+    {
+      "index": 3,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part003",
+      "bytes": 16777216
+    },
+    {
+      "index": 4,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part004",
+      "bytes": 16777216
+    },
+    {
+      "index": 5,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part005",
+      "bytes": 16777216
+    },
+    {
+      "index": 6,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part006",
+      "bytes": 16777216
+    },
+    {
+      "index": 7,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part007",
+      "bytes": 16777216
+    },
+    {
+      "index": 8,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part008",
+      "bytes": 16777216
+    },
+    {
+      "index": 9,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part009",
+      "bytes": 16777216
+    },
+    {
+      "index": 10,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part010",
+      "bytes": 16777216
+    },
+    {
+      "index": 11,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part011",
+      "bytes": 16777216
+    },
+    {
+      "index": 12,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part012",
+      "bytes": 16777216
+    },
+    {
+      "index": 13,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part013",
+      "bytes": 16777216
+    },
+    {
+      "index": 14,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part014",
+      "bytes": 16777216
+    },
+    {
+      "index": 15,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part015",
+      "bytes": 16777216
+    },
+    {
+      "index": 16,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part016",
+      "bytes": 16777216
+    },
+    {
+      "index": 17,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part017",
+      "bytes": 16777216
+    },
+    {
+      "index": 18,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part018",
+      "bytes": 16777216
+    },
+    {
+      "index": 19,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part019",
+      "bytes": 16777216
+    },
+    {
+      "index": 20,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part020",
+      "bytes": 16777216
+    },
+    {
+      "index": 21,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part021",
+      "bytes": 16777216
+    },
+    {
+      "index": 22,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part022",
+      "bytes": 16777216
+    },
+    {
+      "index": 23,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part023",
+      "bytes": 16777216
+    },
+    {
+      "index": 24,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part024",
+      "bytes": 16777216
+    },
+    {
+      "index": 25,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part025",
+      "bytes": 16777216
+    },
+    {
+      "index": 26,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part026",
+      "bytes": 16777216
+    },
+    {
+      "index": 27,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part027",
+      "bytes": 16777216
+    },
+    {
+      "index": 28,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part028",
+      "bytes": 16777216
+    },
+    {
+      "index": 29,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part029",
+      "bytes": 16777216
+    },
+    {
+      "index": 30,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part030",
+      "bytes": 16777216
+    },
+    {
+      "index": 31,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part031",
+      "bytes": 16777216
+    },
+    {
+      "index": 32,
+      "name": "ContentHub-Setup-v1.2.3-x64.exe.part032",
+      "bytes": 6116087
+    }
+  ]
+}

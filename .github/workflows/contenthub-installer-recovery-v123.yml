@@ -1,0 +1,45 @@
+# PRIVATE UNARMED TEMPLATE. Copy only after root confirms the isolated head and
+# fresh local owner/source guard. No schedule/dispatch/release/main trigger.
+name: One-shot ContentHub 1.2.3 installer recovery
+on:
+  push:
+    branches: ['recovery/contenthub-v1.2.3-git-cache-20261103t1418']
+permissions:
+  contents: write
+concurrency:
+  group: contenthub-v123-installer-one-shot
+  cancel-in-progress: false
+jobs:
+  installer-only:
+    if: >-
+      github.repository == 'ASK-022/video-copy-studio-skill' &&
+      github.ref == 'refs/heads/recovery/contenthub-v1.2.3-git-cache-20261103t1418' &&
+      github.event.before == '236b2ec73a37da84a14d16abfc8305d0daae9aa0' &&
+      github.actor == 'ASK-022' && github.triggering_actor == 'ASK-022' &&
+      github.run_attempt == 1 && github.event_name == 'push' &&
+      github.event.created == false && github.event.deleted == false &&
+      github.event.forced == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      EXPECTED_RECOVERY_REF: refs/heads/recovery/contenthub-v1.2.3-git-cache-20261103t1418
+      EXPECTED_EVENT_BEFORE: 236b2ec73a37da84a14d16abfc8305d0daae9aa0
+    steps:
+      - name: Checkout only public recovery software
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: .contenthub-installer-recovery-v123
+          sparse-checkout-cone-mode: true
+      - name: Verify, reassemble, and upload only the exact missing EXE
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: >-
+          python3 .contenthub-installer-recovery-v123/recovery-installer.py
+          --descriptor .contenthub-installer-recovery-v123/public-descriptor.json
+          --stamp .contenthub-installer-recovery-v123/root-stamp.json
+          --chunks .contenthub-installer-recovery-v123/chunks
+          --output "$RUNNER_TEMP/ContentHub-Setup-v1.2.3-x64.exe"

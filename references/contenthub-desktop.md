@@ -1,77 +1,64 @@
-# 内容中台完整桌面版：1.2.1 安装资源与更新
+# 内容中台完整桌面版 1.2.3：安装与更新
 
-内容中台包含编导台和剪辑台，适用于 Windows 10／11 x64。[1.2.1 安装资源](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.2.1)使用 `ContentHub-` 文件名，与独立 VideoCopyStudio 文案客户端的 `v1.2.1` 分别安装和更新。
+内容中台包含编导台与剪辑台，适用于 Windows 10／11 x64。[正式版下载页](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.2.3) 使用 `ContentHub-` 文件名，与独立 VideoCopyStudio 文案客户端及 Agent Skill 分别安装和更新。
 
-## 选择安装方式
+## 首次安装或已有资源
 
-| 你的情况 | 操作 |
-|---|---|
-| 已有完整桌面版，能进入客户端 | 保存工作、等待任务完成，在顶部“检查更新”，下载并校验后点“更新并重启” |
-| 新电脑，已有完整 r1 资源目录 | 下载 `ContentHub-Setup-v1.2.1-x64.exe` 安装，资源准备时选择“选择已有资源”并指定完整根目录 |
-| 新电脑，需要离线转写资源 | 按下节下载新版完整 EXE、新版离线助手、全部 25 个 r1 ZIP 和微软运行库 |
-| 新电脑，准备在线下载资源 | 先安装完整 EXE，再选择“下载并准备资源”；首次需要下载数 GB，须等待模型加载与转写自检通过 |
+下载 `ContentHub-Setup-v1.2.3-x64.exe`，运行后选择程序安装目录。已有通过自检的完整 r1 资源根目录时，选择“选择已有资源”；不要只选 Models 子目录。程序、模型资源、个人资料分别保存，已有模型不随普通程序更新重复下载。
 
-## 新电脑的完整离线安装
+没有资源时可在线“下载并准备资源”；首次准备数 GB，需等模型加载和转写自检完成。本轮未重测新电脑从公网首次下载全部资源，不把部分下载当作安装完成。也可按下节准备完整离线安装。
 
-将以下文件保持原名放在同一个文件夹：
+## 完整离线安装
 
-1. 从 [1.2.1 安装资源](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.2.1)下载 `ContentHub-Setup-v1.2.1-x64.exe` 和 `ContentHub-Offline-Install-v1.2.1.exe`，并下载对应 SHA256 校验文件。
-2. 从 [r1 资源所在的 contenthub-v1.1.1 发布页](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.1.1)下载全部 **25 个 `ContentHub-Resources-r1-01.zip` 至 `ContentHub-Resources-r1-25.zip`**，以及 `VC_redist.x64.exe`。这些是沿用的 r1 资源，文件名中的 r1 不随程序版本改变。
-3. 可按本版附件 `contenthub-resources-r1.json` 或仓库的 [r1 固定资源清单](../releases/contenthub/resources/r1.json)核对资源文件名、大小和 SHA256；逐项下载地址见离线安装说明附件。
+在同一个文件夹中保持原名放置：
 
-双击 **`ContentHub-Offline-Install-v1.2.1.exe`**。助手校验并准备独立资源目录，再打开标准程序安装向导。资源可以放在 D／E 盘等另一个位置；在标准安装向导中选择程序安装目录。不要逐个手工解压资源 ZIP，不要重命名文件。助手直接使用本版完整 EXE，无需下载旧式的 6 个程序 ZIP 分包。
+1. [本版下载页](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.2.3) 的 `ContentHub-Setup-v1.2.3-x64.exe`、`ContentHub-Offline-Install-v1.2.3.exe`、`VC_redist.x64.exe`、`contenthub-resources-r1.json` 与对应 SHA256 清单。
+2. [原 r1 发布页](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.1.1) 的全部 25 个资源 ZIP。它们继续沿用原始字节与下载地址：
 
-需要系统 C++ x64 运行库时，按 `VC_redist.x64.exe` 的微软原版界面安装；它可能要求管理员权限或重启。此文件来自[微软官方来源](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist)，与程序自身的安装目录选择分别处理。
+- [`ContentHub-Resources-r1-01.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-01.zip)
+- [`ContentHub-Resources-r1-02.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-02.zip)
+- [`ContentHub-Resources-r1-03.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-03.zip)
+- [`ContentHub-Resources-r1-04.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-04.zip)
+- [`ContentHub-Resources-r1-05.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-05.zip)
+- [`ContentHub-Resources-r1-06.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-06.zip)
+- [`ContentHub-Resources-r1-07.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-07.zip)
+- [`ContentHub-Resources-r1-08.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-08.zip)
+- [`ContentHub-Resources-r1-09.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-09.zip)
+- [`ContentHub-Resources-r1-10.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-10.zip)
+- [`ContentHub-Resources-r1-11.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-11.zip)
+- [`ContentHub-Resources-r1-12.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-12.zip)
+- [`ContentHub-Resources-r1-13.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-13.zip)
+- [`ContentHub-Resources-r1-14.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-14.zip)
+- [`ContentHub-Resources-r1-15.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-15.zip)
+- [`ContentHub-Resources-r1-16.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-16.zip)
+- [`ContentHub-Resources-r1-17.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-17.zip)
+- [`ContentHub-Resources-r1-18.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-18.zip)
+- [`ContentHub-Resources-r1-19.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-19.zip)
+- [`ContentHub-Resources-r1-20.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-20.zip)
+- [`ContentHub-Resources-r1-21.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-21.zip)
+- [`ContentHub-Resources-r1-22.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-22.zip)
+- [`ContentHub-Resources-r1-23.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-23.zip)
+- [`ContentHub-Resources-r1-24.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-24.zip)
+- [`ContentHub-Resources-r1-25.zip`](https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-25.zip)
 
-程序安装为当前 Windows 用户安装，无需预装 Git、Node.js 或系统 Python。程序、资源、用户资料分别保存；模型和个人资料不要放进程序的内部版本目录。成功以安装助手及资源自检的实际完成提示为准。
+按 `contenthub-resources-r1.json` 或仓库 [r1 固定清单](../releases/contenthub/resources/r1.json)核对大小和 SHA256，然后双击 `ContentHub-Offline-Install-v1.2.3.exe`。助手校验并准备独立资源，再打开完整 EXE 的标准安装向导；程序和资源可分别选择位置。不要逐个手工解压 ZIP，不要改名，无需旧式的 6 个程序分包。微软运行库使用其原版安装界面。
 
-已经准备好的完整 r1 资源可直接复用。普通程序更新不重新下载这 25 个资源包。本地视频／音频转写可使用离线资源；AI、公开链接解析、飞书和检查更新需要联网及自己的服务配置。
+## 已有客户端更新与失败恢复
 
-本次安装资源以 GitHub 实际附件为准。蓝奏云新版未上传。
+v1.1.0、v1.1.1、v1.2.0 或 v1.2.1 完整桌面版可从“检查更新”下载签名更新，先保存未提交内容并等待转写、生成与导出任务完成，再点“更新并重启”。`delta`／`part` 附件由更新器校验与重组，无需手工安装。
 
-## 在线准备资源与已有模型
+更新使用独立程序版本目录，保留旧程序、资料、加密 Key、项目和模型。新程序须通过工作台启动检查；启动失败恢复旧版。资源契约不兼容时使用完整安装器。Windows 用户加密的 Key 不能直接当作跨用户凭据。
 
-程序包含剪辑所需的 Chromium 和 FFmpeg，本地转写模型与 Python 资源独立保存。已有通过自检的完整资源目录，选择“选择已有资源”并指定根目录，不能只选其中的 Models 子目录。
+## 功能与自己的服务配置
 
-没有资源时，选择“下载并准备资源”，指定程序安装目录之外的位置。依赖优先使用国内镜像，失败后依次尝试已配置的备用来源；模型使用 ModelScope。安装中断后可在同一资源目录继续准备。基础 Python 和固定转写源码随准备程序提供，不依赖先获取 GitHub 源码。
+本版合入时间线选段换产品、智能混剪、可编辑画布、剪辑快捷键与原文件口播预览，并保留编导、拆解、案例库和团队配置包入口。生成与云服务仍需要自己的授权和额度；采用素材或外部生成仍按客户端的确认流程执行。
 
-本地转写可选“自动／GPU／CPU”。GPU 依赖按需准备，CPU 环境保留；自动模式遇到已识别的 CUDA 设备不匹配错误会保留错误记录并回退 CPU。显式 GPU 模式及其他错误仍按实际失败情况提示。
+团队 API 包通过“设置 → 服务商”预览后导入，按当前 Windows 用户加密；云转写配置与文字 AI 服务分别处理。公开软件不附带私人配置包、发布者身份或 OAuth 会话。飞书仍需每位用户自己的官方应用配置、登录授权及目标资源权限。
 
-本轮未验证新电脑从公网首次下载全部在线资源；不同网络和镜像同步状态可能影响下载。下载失败、模型加载失败或服务自检失败时应查看日志并重试，不能将部分安装当作完成。
+## 本轮验证范围
 
-## 程序更新与失败回滚
+当前同源 60 组检查、双工作台启动、合成音频实际本地转写、22 个模型 SHA 复用、假 Key 包导入／去重／加密通过。四个基线的签名分片与控制器通过；v1.1.1 实际升级和强制启动失败回滚保持 10 项假资料与 22 个模型，测试进程清理完成。本次发布验真时，公开 48 件附件及 Raw／Fastly 的 1.2.3 签名清单已核验；Gcore 的 main 清单仍为签名有效的 1.2.1 缓存。实测 1.1.1／1.2.3 包内更新器会选择最高有效版本 1.2.3，未宣称 Gcore 缓存已刷新。
 
-已有完整桌面版在顶部点击“检查更新”。先保存页面尚未提交的输入，等待转写、编导／AI、素材导入和剪辑导出等任务完成。新版下载并通过签名与摘要校验后，点击“更新并重启”；名称含 `delta` 或 `part` 的附件由客户端处理，无需手工拼接。
+飞书本轮仅核对对应源码与历史授权交付一致，并验证当前包内官方 CLI 的独立配置、空 PATH 与无认证边界；没有新增云写入或云回读。未提交新的付费生成或真实音频云转写；离线标志不等于已验证所有进程网络阻断。
 
-新版放入独立程序版本目录，旧程序保留。更新前备份资料元数据与加密 Key；切换后通过双工作台启动检查才确认成功。启动失败或健康检查超时会恢复旧版本和备份的元数据；更新意外中断时，下次启动执行恢复检查。资料、Key、项目和原有模型保留。
-
-更新清单使用发布签名，下载分片与重组文件均验证 SHA256。资源契约不兼容或没有适配增量时，按提示使用完整安装器。当前 Windows 用户加密的 Key 不能作为跨用户共享凭据，换电脑或账号后需重新配置。
-
-完整桌面版使用独立的 `contenthub-v1.2.1` 发布标记和签名清单；VideoCopyStudio 文案客户端继续使用自身的 `v1.2.1` 通道。两套安装器和增量不能交叉使用。
-
-## 本版工作台功能
-
-- 编导台增加批量视频解析与提示词反推、分阶段队列和统一任务中心；失败条目可单独重试，复用已完成的下载与转写。提示词选区可整体拖动，并可一次复制全部提示词。
-- 深度拆解使用通用七段、带货八维、画面证据、复用骨架和复盘清单。保留原文、校对稿、原段角色、顺序与实测时间，区分原片宣称、分析推断、改拍建议和未知数据。报告使用中文标题，参考截图集中在文末的“参考截图”下，时间说明清晰显示。
-- 团队案例库支持去重入库、不可变修订历史、检索、并排对照、飞书目录与版本详情同步。同案例重复同步沿用目录，历史详情保留；写入结果不明确时先核对远端。骨架复用新建独立参考，保留段落功能与顺序，目标商品事实默认留空，需重新填写并核对。
-- 剪辑台增加可灵授权、生成任务与结果导入，以及素材／提示词创作画布、连线、框选、镜头分组、工作流模板和保存恢复。画布 AI 先预览方案，确认后执行；外部生成仍需自己的服务授权与额度。
-
-原片的功效、价格、销售和使用经历属于来源宣称；截图及 OCR 也不自动证明这些宣传事实。没有取得的播放、转化或音色等数据不作为已验证结果。复用结构时须核对目标商品资料，不把参考片商品事实直接带入新稿。
-
-## 团队 API 配置与飞书授权
-
-在“设置 → 服务商 → 团队 API 配置包”选择私下获得的 ZIP／JSON，检查遮蔽密钥的导入预览后再导入。配置按当前 Windows 用户重新加密，重复导入按匹配配置去重／更新。安装器和公开下载文件不含团队 Key、真实配置或 OAuth 缓存。
-
-程序已内置官方飞书 native CLI 1.0.98，无需为此另外安装 Node／npm。**每位用户仍须按飞书官方流程完成自己的应用配置和用户 OAuth 授权**，并具备目标资源权限；团队 API 包不能替代此授权。程序不携带发布者的应用凭据和登录身份，也不会自动扩大飞书分享权限。
-
-## 资料位置与排错
-
-默认用户资料为 `%APPDATA%\内容中台`，编导资料在其中的 `director-data`，剪辑服务配置在 `studio`。项目和导出默认位于“文档\内容中台”，以客户端实际设置为准。
-
-程序版本保存在所选安装目录的 `versions`，当前版本指针为 `current.json`。不要手工移动内部版本文件。更新结果位于用户资料目录的 `desktop-update-result.json`；日志在 `logs\desktop-updater.log`、`logs\desktop-launch.log` 和 `logs\director-service.log`。资源日志在所选资源目录的 `resource-setup.log`、`bootstrap.log`、`models.log`。
-
-当前安装包未附 Windows 代码签名；请对照发布页 SHA256 校验。更新清单的发布签名与 Windows 可执行文件代码签名分别使用。受单位软件策略限制时，按单位要求安装。
-
-早期 v1.0.x 测试程序缺少完整更新能力，可保存并退出后使用完整安装器，保留外部资料与模型目录；v1.1.0 的 6 个程序分包和旧助手仅属于[历史版本](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.1.0)，本版按上方完整 EXE 流程安装。r1 资源继续复用，不因程序版本变化重新下载。
-
-[正式更新日志](../releases/contenthub/CHANGELOG.stable.md) · [开发更新日志](../releases/contenthub/CHANGELOG.development.md)
+本轮仅使用 GitHub，蓝奏云后补。完整桌面版采用独立 `contenthub-v1.2.3` 通道，独立文案客户端和 Agent Skill 的 latest 不变。

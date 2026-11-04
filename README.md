@@ -6,21 +6,19 @@
 
 [下载 v1.2.1](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/v1.2.1)。已有完整离线客户端可在设置中检查更新，或使用 `VideoCopyStudio-Upgrade-v1.2.1.exe`；在线安装使用 `VideoCopyStudio-Setup-v1.2.1.exe`，Agent 安装使用 `video-copy-studio-v1.2.1.zip`。资料、Key 与模型继续保留。完整内容中台另有独立更新通道。
 
-## 内容中台完整桌面版：1.2.3（编导台＋剪辑台）
+## 内容中台完整桌面版：1.3.0（编导台＋剪辑台）
 
-[下载正式版 1.2.3](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.2.3) · [安装与更新说明](references/contenthub-desktop.md) · [正式日志](releases/contenthub/CHANGELOG.stable.md) · [开发日志](releases/contenthub/CHANGELOG.development.md)
+[下载正式版 1.3.0](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.3.0) · [安装与更新说明](references/contenthub-desktop.md) · [正式日志](releases/contenthub/CHANGELOG.stable.md) · [开发日志](releases/contenthub/CHANGELOG.development.md)
 
-Windows 10／11 x64 首次安装下载 `ContentHub-Setup-v1.2.3-x64.exe`，双击选择程序目录。已有完整桌面版先保存工作、等待任务完成，再从“检查更新”下载并重启；资料、加密 Key、项目与模型保留，启动检查失败时恢复旧版。
+Windows 10／11 x64 首次安装下载 `ContentHub-Setup-v1.3.0-x64.exe`，双击选择程序目录。已有完整桌面版先保存工作、等待任务完成，再从“检查更新”下载并重启；资料、加密 Key、项目与模型保留，启动检查失败时恢复旧版。
 
-本版合入剪辑与智能混剪、时间线选段换产品、可编辑创作画布和原文件口播预览，保留编导台文案、拆解、案例库与团队配置入口。
+本版新增 AI 口播粗剪与逐句审片，按真实时间戳选镜并保护原声。剪映草稿默认保留原素材和可编辑时间线；需要烘焙效果时再主动选择效果渲染。智能体统一使用 AskFilm，并补充 PATH 缺失时的本地命令入口。此前编导台文案、拆解、案例库、智能混剪与创作画布继续保留。
 
-已有 r1 资源直接复用。新电脑离线安装使用本版完整 EXE、本版 `ContentHub-Offline-Install-v1.2.3.exe`、微软运行库和[原 r1 发布页](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.1.1)的全部 25 个资源 ZIP，按[离线步骤](references/contenthub-desktop.md#完整离线安装)保持原名放在同一目录；无需重新下载旧程序分包。
+已有 r1 资源直接复用。本轮未重新发布模型资源，也未提供 1.3.0 专用离线准备向导。新电脑可按[既有完整离线步骤](references/contenthub-desktop.md#完整离线安装)准备 r1，再运行本版完整 EXE 并选择已有资源；原有安装命令和 25 个 r1 资源 ZIP 地址保持不变。
 
-本轮通过当前源码 60 组检查、双工作台与合成语音实际本地转写、模型复用、假 Key 包导入／去重／本机加密、四基线控制器与分片下载，以及 v1.1.1 实际升级和强制失败回滚。飞书本轮仅核对对应源码一致和官方 CLI 配置边界，未新做云写入或云回读；未提交新的付费生成或真实音频云转写。
+当前 1.3.0 签名更新使用完整程序包，分片由更新器自动校验和重组，不需要手动下载或解压；模型与个人资料不随程序重复下载。
 
-本次发布验真时，公开 48 件附件与 Raw／Fastly 的 1.2.3 清单已核验；Gcore 的 main 清单仍是签名有效的 1.2.1 缓存。实测客户端会选取最高有效版本 1.2.3，未宣称该缓存已刷新。
-
-AI、云转写、飞书与链接服务仍需各用户自己的配置和授权。公开软件不含个人 Key、登录态或生产资料。完整桌面版使用独立 `contenthub-v1.2.3` 通道；下方独立文案客户端与 Agent Skill 的版本和 latest 保持不变。本轮仅发布 GitHub，蓝奏云后补。
+AI、云转写、飞书与链接服务仍需各用户自己的配置和授权。公开软件不含个人 Key、登录态或生产资料。完整桌面版使用独立 `contenthub-v1.3.0` 通道；下方独立文案客户端与 Agent Skill 的版本和 latest 保持不变。本轮仅发布 GitHub，蓝奏云后补。
 
 ## v1.2.0 客户端更新与回滚
 

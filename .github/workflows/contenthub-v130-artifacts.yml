@@ -15,7 +15,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       CONTENTHUB_PLAN_SHA: 'eaeba5149681fde8f918c90f5c19e7274a9d5533c3b6dc9893ab2a309af33834'
-      CONTENTHUB_RUNNER_SHA: 'dc6d03c70c3fdf178bbac3e96618373ada72842ba2e74ba29144a5cd1d7b3889'
+      CONTENTHUB_RUNNER_SHA: '6fcfa5737221d1bfd97112d73caf63a77cd69405f707232ae9a6525223300796'
     steps:
       - name: Verify and assemble exact public software artifacts
         shell: bash

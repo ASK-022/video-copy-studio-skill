@@ -73,17 +73,22 @@ def main():
         nonlocal last_start
         file = files[asset['name']]
         need(file.stat().st_size == asset['bytes'] and sha(file) == asset['sha256'], 'Upload bytes changed')
-        release = owned(); existing = next((a for a in release['assets'] if a['name'] == asset['name']), None)
-        if not existing:
+        for attempt in range(4):
+            release = owned(); existing = next((a for a in release['assets'] if a['name'] == asset['name']), None)
+            if existing:
+                need(existing['size'] == asset['bytes'] and existing.get('digest') == 'sha256:' + asset['sha256'], 'Existing upload checksum mismatch; never clobber')
+                print('NATIVE_ASSET_ACK ' + asset['name'], flush=True); return
             with lock:
                 time.sleep(max(0, 1.1 - (time.monotonic() - last_start))); last_start = time.monotonic()
             try: run(['gh', 'release', 'upload', plan['upload_tag'], '--repo', REPO, str(file)])
             except Exception:
                 release = owned(); existing = next((a for a in release['assets'] if a['name'] == asset['name']), None)
-                if not existing: raise
-        release = owned(); existing = next(a for a in release['assets'] if a['name'] == asset['name'])
-        need(existing['size'] == asset['bytes'] and existing.get('digest') == 'sha256:' + asset['sha256'], 'Native upload checksum mismatch')
-        print('NATIVE_ASSET_ACK ' + asset['name'], flush=True)
+                if not existing:
+                    if attempt == 3: raise
+                    print('RETRY_MISSING_UPLOAD ' + asset['name'], flush=True); time.sleep(5 * (attempt + 1)); continue
+            release = owned(); existing = next(a for a in release['assets'] if a['name'] == asset['name'])
+            need(existing['size'] == asset['bytes'] and existing.get('digest') == 'sha256:' + asset['sha256'], 'Native upload checksum mismatch')
+            print('NATIVE_ASSET_ACK ' + asset['name'], flush=True); return
     with ThreadPoolExecutor(max_workers=3) as pool: list(pool.map(upload, plan['assets']))
     release = owned(); actual = {a['name']: a for a in release['assets']}
     need(set(actual) == {a['name'] for a in plan['assets']}, 'Unexpected draft asset set')

@@ -6,19 +6,19 @@
 
 [下载 v1.2.1](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/v1.2.1)。已有完整离线客户端可在设置中检查更新，或使用 `VideoCopyStudio-Upgrade-v1.2.1.exe`；在线安装使用 `VideoCopyStudio-Setup-v1.2.1.exe`，Agent 安装使用 `video-copy-studio-v1.2.1.zip`。资料、Key 与模型继续保留。完整内容中台另有独立更新通道。
 
-## 内容中台完整桌面版：1.3.2（编导台＋剪辑台）
+## 内容中台完整桌面版：1.3.3（编导台＋剪辑台）
 
-[下载正式版 1.3.2](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.3.2) · [安装与更新说明](references/contenthub-desktop.md) · [正式日志](releases/contenthub/CHANGELOG.stable.md) · [开发日志](releases/contenthub/CHANGELOG.development.md)
+[下载正式版 1.3.3](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.3.3) · [安装与更新说明](references/contenthub-desktop.md) · [正式日志](releases/contenthub/CHANGELOG.stable.md) · [开发日志](releases/contenthub/CHANGELOG.development.md)
 
-本版基于 1.3.1 修复 5 处问题：Windows 子进程环境变量、更新包写入异常、内置技能标题与封面读取、字幕图层亚像素位置，以及临时文件引起的素材刷新。尚在开发中的素材库功能未并入本轮正式更新。
+可灵和 LibTV 现在都可以在剪辑台内安装官方连接组件。新电脑无需自行安装 Node、npm 或寻找命令行；可灵按账号选择中国区或海外区，LibTV 使用同一个“连接 / 重新授权 LibTV”入口。授权过期会提示重新授权，安装失败可原地重试。
 
-Windows 10／11 x64 新装下载 `ContentHub-Setup-v1.3.2-x64.exe`。已有完整桌面版先保存工作、等待任务完成，再从“检查更新”下载并重启。签名更新使用完整程序包，分片由更新器校验和重组；已有 r1 模型资源直接复用，无需手工下载分片。
+Windows 10／11 x64 新装下载 `ContentHub-Setup-v1.3.3-x64.exe`。已有完整桌面版先保存工作、等待任务完成，再从“检查更新”下载并重启。签名更新采用完整程序包；已有 r1 模型资源直接复用。
 
-1.3.1 与 1.2.3 的正常升级和强制启动失败回滚均已实测，隔离测试资料、加密测试 Key、项目和模型保留。本轮通过 75 组必需检查、候选双工作台启动、实际本地转写及命令入口验收。
+本轮通过 77 组必需检查、候选双工作台启动、实际本地转写和无外部 Node/npm 的官方组件安装验收，并实测 1.3.2 与 1.2.3 升级及启动失败回退。安装和授权验证未提交付费生成。1.3.2 的五处修复继续保留，素材库功能仍在开发线。
 
-本轮发布程序安装器与签名更新，未新增离线准备助手。新电脑需要离线准备 r1 时，按[离线步骤](references/contenthub-desktop.md#完整离线安装)使用原 1.3.1 助手及原 r1 资源，随后运行 1.3.2 安装器并选择已有资源。原有资源文件保持原名。
+本轮仅发布 GitHub 程序安装器与签名更新，未新增离线准备助手。离线准备 r1 继续按[离线步骤](references/contenthub-desktop.md#完整离线安装)使用原 1.3.1 助手及原 r1 资源，随后运行 1.3.3 安装器并选择已有资源。
 
-AI、云转写、飞书与链接服务仍需各用户自己的配置和授权。公开软件不含个人 Key、登录态或生产资料。完整桌面版使用独立 `contenthub-v1.3.2` 通道；下方独立文案客户端与 Agent Skill 的版本和 latest 保持不变。本轮仅发布 GitHub。
+AI、云转写、飞书与链接服务仍使用各用户自己的配置和授权。公开软件不含个人 Key、登录态或生产资料。完整桌面版使用独立 `contenthub-v1.3.3` 通道。
 
 ## v1.2.0 客户端更新与回滚
 

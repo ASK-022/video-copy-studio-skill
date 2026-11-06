@@ -1,0 +1,27 @@
+name: ContentHub 1.3.2 one-shot public software 62ff7b73a5af4c49813aba8f8cec12de
+on:
+  push:
+    branches: ['release/contenthub-v1.3.2-artifacts-62ff7b73a5af4c49813aba8f8cec12de']
+permissions:
+  contents: write
+concurrency:
+  group: contenthub-v132-artifacts-62ff7b73a5af4c49813aba8f8cec12de
+  cancel-in-progress: false
+jobs:
+  assemble:
+    if: github.repository == 'ASK-022/video-copy-studio-skill' && github.event.head_commit.message == 'Arm verified ContentHub 1.3.2 artifacts 62ff7b73a5af4c49813aba8f8cec12de'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+      CONTENTHUB_NONCE: '62ff7b73a5af4c49813aba8f8cec12de'
+      CONTENTHUB_PLAN_SHA: '75d454e1a4e019453e0d8502a7021f3ee19078bf32b799c9185747f4dee370c9'
+      CONTENTHUB_RUNNER_SHA: '9f0eafcba9735afc5ef8d5de31be2332559ec53b82e98767f3376fa31a781357'
+    steps:
+      - name: Verify and assemble the exact approved public software
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 3 "https://raw.githubusercontent.com/ASK-022/video-copy-studio-skill/${{ github.sha }}/releases/contenthub/staging/1.3.2/62ff7b73a5af4c49813aba8f8cec12de/runner.py" -o /tmp/contenthub-v132-assembler.py
+          echo "$CONTENTHUB_RUNNER_SHA  /tmp/contenthub-v132-assembler.py" | sha256sum --check
+          python3 /tmp/contenthub-v132-assembler.py

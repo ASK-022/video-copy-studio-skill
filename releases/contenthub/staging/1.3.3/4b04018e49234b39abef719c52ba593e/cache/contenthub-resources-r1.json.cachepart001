@@ -1,0 +1,246 @@
+{
+  "format": "contenthub/resources/v1",
+  "revision": "r1",
+  "resource_contract": 1,
+  "minimum_desktop_version": "1.1.0",
+  "archive": {
+    "name": "ContentHub-Resources-r1.zip",
+    "bytes": 2342267074,
+    "sha256": "769ee42e52ad73c67f30d28483e34589ae4dbdb2c4873377d2635657b960c7d2"
+  },
+  "unpacked_bytes": 4571490941,
+  "files": 31988,
+  "models": [
+    "SenseVoice Small",
+    "Chinese punctuation",
+    "Forced alignment",
+    "OCR"
+  ],
+  "parts": [
+    {
+      "name": "ContentHub-Resources-r1-01.zip",
+      "entry": "resources-r1.part001",
+      "bytes": 94371840,
+      "sha256": "b48856c6928d372d2e4ea2fb52432e2ad7141ae05bb5b172f3d05f0a4d24c029",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-01.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "84a18fbc842bef8905549880c66bc020931f1c300575e4639e953b78f0cde3c7"
+    },
+    {
+      "name": "ContentHub-Resources-r1-02.zip",
+      "entry": "resources-r1.part002",
+      "bytes": 94371840,
+      "sha256": "73700cce29520456caf6757d311e19eec5f0f0075971f09002e22837ce1c6a2d",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-02.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "5b5cccfaf83415549efc02c4cd40cab801447d9e3e2d9b8ed856078a3caa6275"
+    },
+    {
+      "name": "ContentHub-Resources-r1-03.zip",
+      "entry": "resources-r1.part003",
+      "bytes": 94371840,
+      "sha256": "215c1e3b5296fc303dae0445bb39a42d3b23863e03e8b39322f982ac463eb0b7",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-03.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "37b89397452267cef2e5461de9a4a2bd35e5e9be37d612518f3febe1cf4b9bdf"
+    },
+    {
+      "name": "ContentHub-Resources-r1-04.zip",
+      "entry": "resources-r1.part004",
+      "bytes": 94371840,
+      "sha256": "56698d1329f33f3abb6866007a97ea5d5d7e051e01c0cb98a13b91d6ab94ebab",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-04.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "06b7a1c7ad4614594ec5025d579b5e4256700a5918a3d178ff8600367042d93c"
+    },
+    {
+      "name": "ContentHub-Resources-r1-05.zip",
+      "entry": "resources-r1.part005",
+      "bytes": 94371840,
+      "sha256": "53e14558e74083be8f974a3d6c2453c2c866758f1424cd4eb051718ee7193fc8",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-05.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "a8035f80fba3fb0cb13003057763daee8b10c1032bc187b50071235f4b7a4ea2"
+    },
+    {
+      "name": "ContentHub-Resources-r1-06.zip",
+      "entry": "resources-r1.part006",
+      "bytes": 94371840,
+      "sha256": "65f18a036c3ff08a584594e0cefff9faa2b72678ba56460b5c2ebca92c92ed17",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-06.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "70bd576b7075d3dfa6cdf84bb4717d2e70cbc35649d30d0edc2627e2d44b11bc"
+    },
+    {
+      "name": "ContentHub-Resources-r1-07.zip",
+      "entry": "resources-r1.part007",
+      "bytes": 94371840,
+      "sha256": "3772ca607c7bf55bf8c1a78aaf0e290217515fca748a66590e392f386ec3a79a",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-07.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "d62a8f905aaa55c7c1bc279bcac4c4b43f6615bfc5998a100dd170448439b4d5"
+    },
+    {
+      "name": "ContentHub-Resources-r1-08.zip",
+      "entry": "resources-r1.part008",
+      "bytes": 94371840,
+      "sha256": "2d61c24bbc64a40b95df3c01434e9657ce9e91904b624765f34b42439a9ee98d",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-08.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "ba54640802926512b2a89494a37b5b3f84d43211a1de04ae6745310f2ecf6fee"
+    },
+    {
+      "name": "ContentHub-Resources-r1-09.zip",
+      "entry": "resources-r1.part009",
+      "bytes": 94371840,
+      "sha256": "0cb175d8d88444698eb476d5d15298bc021cda055f6f982f9ff46979a79e9183",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-09.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "2b23f4cf496356fdf0a1a93c11c9f081a41dc7ab2f3c253fe2927134102f34ea"
+    },
+    {
+      "name": "ContentHub-Resources-r1-10.zip",
+      "entry": "resources-r1.part010",
+      "bytes": 94371840,
+      "sha256": "6c15427b76d91c184d711ae503a11068f40e45094fcd779ce6c46c30ff336e2a",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-10.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "cf926e1ce4c897dcccf90db5f86ad16d726ca31f1b4f1f1cd2f68099f0676264"
+    },
+    {
+      "name": "ContentHub-Resources-r1-11.zip",
+      "entry": "resources-r1.part011",
+      "bytes": 94371840,
+      "sha256": "a049e29ffc37d9cd466e4e40499586d08beeeb9e7f2cc124ced402a05dacd7d0",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-11.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "74d4065e890fc496f8630d46a6811325f80fac5646ecdb0942b3f993fa340c27"
+    },
+    {
+      "name": "ContentHub-Resources-r1-12.zip",
+      "entry": "resources-r1.part012",
+      "bytes": 94371840,
+      "sha256": "be95f0ef8b66a803b5254e685467d15ec4aea73d82c5ed7d990c86980e53f22a",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-12.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "7e5a1a2d8a211ab50d8dfde84c4ae3f422f06b1af8eb1d6fc6bdaf2b1027ce77"
+    },
+    {
+      "name": "ContentHub-Resources-r1-13.zip",
+      "entry": "resources-r1.part013",
+      "bytes": 94371840,
+      "sha256": "4166e217e7c3e3e1af7e56a926b516d0a3adad2267c6226d4e560129cb28f9c2",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-13.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "e9b028f5ff916551858df8f934950930d42dbcc1fcf915c8cfeeb005db0e3e61"
+    },
+    {
+      "name": "ContentHub-Resources-r1-14.zip",
+      "entry": "resources-r1.part014",
+      "bytes": 94371840,
+      "sha256": "85f7d3a8051161bc859337b3bb62ac346479e9aec934a9f657cb16dec8c05469",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-14.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "fb0d5a2d236a89abdbde76dd3b5a46c5a11f47dc5190b2fe9366cc09952971d6"
+    },
+    {
+      "name": "ContentHub-Resources-r1-15.zip",
+      "entry": "resources-r1.part015",
+      "bytes": 94371840,
+      "sha256": "db824bd6991b9b6aacee87b700c4114b1bb8ea842b0a820c018fa0e7fa2db41d",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-15.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "6f480e22cd813814d25f95f05d16eba771a2dc7fec4f8397736177c541018cb4"
+    },
+    {
+      "name": "ContentHub-Resources-r1-16.zip",
+      "entry": "resources-r1.part016",
+      "bytes": 94371840,
+      "sha256": "1893d0ba5295a0ef1bef4eb47753791349bf0512b0fa89345b8a3f2a23ef70f0",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-16.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "ed1c94b55cd6c9e75b6fd4e993ba69f4d6768737c2c687084e196231f43dd52e"
+    },
+    {
+      "name": "ContentHub-Resources-r1-17.zip",
+      "entry": "resources-r1.part017",
+      "bytes": 94371840,
+      "sha256": "158074c8a57e4e067962faa7de06731ac9fa32e68f8df7018338b94d8b6ad262",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-17.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "300b18b267f9a5586670c7c968a0949432f211dcde44d63e1380a1668a1a4409"
+    },
+    {
+      "name": "ContentHub-Resources-r1-18.zip",
+      "entry": "resources-r1.part018",
+      "bytes": 94371840,
+      "sha256": "04f98d1ce299476527bde8f2988d6da643786e233205887cca00c2cff85ad709",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-18.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "70168073578eff1c5c126f81cd042a633e2cb63e30d97f1fdb42607cbf518127"
+    },
+    {
+      "name": "ContentHub-Resources-r1-19.zip",
+      "entry": "resources-r1.part019",
+      "bytes": 94371840,
+      "sha256": "0c8d09086bf217d689e9a55331a0199f173caa88f5ef00d21db74ed1206aff63",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-19.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "f8ef22b86203e9fdc286a44dc5b1dc2a15cdb8ceff6b4205b3c4a1ca7be7df72"
+    },
+    {
+      "name": "ContentHub-Resources-r1-20.zip",
+      "entry": "resources-r1.part020",
+      "bytes": 94371840,
+      "sha256": "89d8f8a4f59b0fa6ee94ec76376361e0e29af2bba626a8437a5dd69b9e3deb67",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-20.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "415b633e1585894a50937b3f8790afeae6f84bda2b7f9048162a08d1aeb8500c"
+    },
+    {
+      "name": "ContentHub-Resources-r1-21.zip",
+      "entry": "resources-r1.part021",
+      "bytes": 94371840,
+      "sha256": "40650a5660025104a710c9a3cebe54b06d452f91d51badd128541bfd5d8d0f4b",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-21.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "f21e26fad6f73c2250bf3ac0779796bee7a214e9c797117cb5b3281b6866f7a7"
+    },
+    {
+      "name": "ContentHub-Resources-r1-22.zip",
+      "entry": "resources-r1.part022",
+      "bytes": 94371840,
+      "sha256": "2e870a7c8171ff4761ca6168c025b320d08e50c749b0051545db036ff134a419",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-22.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "d2db4eec05a2d917dc9f4e79d615bed9b6f62e280863bc7202f9521afeffcb8e"
+    },
+    {
+      "name": "ContentHub-Resources-r1-23.zip",
+      "entry": "resources-r1.part023",
+      "bytes": 94371840,
+      "sha256": "ec762bfd9fe4b4ca56907194df893a44a60130ac77e288612d59c554fa5f6ce1",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-23.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "267e996c915d27ec76c8d88980235f805c2cd35f7903ae040e70c58950d5e236"
+    },
+    {
+      "name": "ContentHub-Resources-r1-24.zip",
+      "entry": "resources-r1.part024",
+      "bytes": 94371840,
+      "sha256": "1a2360c9479deedc73be7fdb400e9968afb6e847bb0bfcb90d3144c87caab060",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-24.zip",
+      "zip_bytes": 94371978,
+      "zip_sha256": "febc76a174d5e7cdbb8e37197f0070e958cd307f242abe236243c2bfdddb2481"
+    },
+    {
+      "name": "ContentHub-Resources-r1-25.zip",
+      "entry": "resources-r1.part025",
+      "bytes": 77342914,
+      "sha256": "8d121d40a9ca7984b14854463547f75fc7376706c416a8acbfc95a0eaf072a6c",
+      "url": "https://github.com/ASK-022/video-copy-studio-skill/releases/download/contenthub-v1.1.1/ContentHub-Resources-r1-25.zip",
+      "zip_bytes": 77343052,
+      "zip_sha256": "95c2623a883a31c8e1fea1f09521b52671d2ed3cca5816c90b8429b29840bc6f"
+    }
+  ]
+}

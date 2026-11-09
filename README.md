@@ -6,15 +6,13 @@
 
 [下载 v1.2.1](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/v1.2.1)。已有完整离线客户端可在设置中检查更新，或使用 `VideoCopyStudio-Upgrade-v1.2.1.exe`；在线安装使用 `VideoCopyStudio-Setup-v1.2.1.exe`，Agent 安装使用 `video-copy-studio-v1.2.1.zip`。资料、Key 与模型继续保留。完整内容中台另有独立更新通道。
 
-## 内容中台完整桌面版：1.3.4（编导台＋剪辑台）
+## 内容中台完整桌面版 1.4.0（编导台＋剪辑台）
 
-[下载正式版 1.3.4](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.3.4) · [安装与更新说明](references/contenthub-desktop.md) · [正式日志](releases/contenthub/CHANGELOG.stable.md)
+[下载正式版 1.4.0](https://github.com/ASK-022/video-copy-studio-skill/releases/tag/contenthub-v1.4.0) · [安装与更新说明](references/contenthub-desktop.md) · [正式日志](releases/contenthub/CHANGELOG.stable.md)
 
-可灵提供官方无水印结果时，剪辑台和画布优先预览并保存该版本。历史任务可查询原任务结果后再回收。已采用的片段由用户在时间线中决定是否替换。
+编导台支持每 15 秒分段反推 Seedance 提示词，尾段保留实际时长。剪辑台新增素材分类库和口播语境检索。
 
-Windows 10／11 x64 新装使用 `ContentHub-Setup-v1.3.4-x64.exe`。已有完整桌面版可保存工程后检查更新并重启。程序更新复用已有 r1 模型资源。
-
-可灵和 LibTV 的安装及官方授权入口见[安装说明](references/contenthub-desktop.md#可灵与-libtv-安装和授权)。离线准备 r1 仍可使用原有 1.3.1 助手。
+Windows 10／11 x64 新装使用 ContentHub-Setup-v1.4.0-x64.exe。已有用户可在软件内检查更新并重启，复用现有 r1 模型资源。
 
 ## v1.2.0 客户端更新与回滚
 

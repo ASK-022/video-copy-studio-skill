@@ -1,0 +1,27 @@
+name: ContentHub 1.5.0 whole ZIP recovery b4776c7de127462e975fee2c7fc18530
+on:
+  push:
+    branches: ['release/contenthub-v1.5.0-large-zip-b4776c7de127462e975fee2c7fc18530']
+permissions:
+  contents: write
+concurrency:
+  group: contenthub-v150-large-zip-b4776c7de127462e975fee2c7fc18530
+  cancel-in-progress: false
+jobs:
+  attach:
+    if: github.repository == 'ASK-022/video-copy-studio-skill' && github.event.head_commit.message == 'Arm ContentHub 1.5.0 whole ZIP recovery b4776c7de127462e975fee2c7fc18530'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+      CONTENTHUB_NONCE: 'b4776c7de127462e975fee2c7fc18530'
+      CONTENTHUB_RUNNER_SHA: 'ac21b40f1b623a4f25912e9b9b26ade011c1db40bd0957386b5b4cbb107cac02'
+      CONTENTHUB_PLAN_SHA: '4b1f591972851be6d6a0d0c1e316df2a89956ea62473078d48f74ef545fb0090'
+    steps:
+      - name: Assemble signed ZIP and attach to exact draft
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 3 'https://raw.githubusercontent.com/ASK-022/video-copy-studio-skill/${{ github.sha }}/releases/contenthub/staging/1.5.0/b4776c7de127462e975fee2c7fc18530/runner.py' -o /tmp/contenthub-large-zip.py
+          echo "$CONTENTHUB_RUNNER_SHA  /tmp/contenthub-large-zip.py" | sha256sum --check
+          python3 /tmp/contenthub-large-zip.py
